@@ -6,3 +6,7 @@ class Layer (object):
         self.sizex = sizex
         self.sizey = sizey
         self.items = None
+
+    @property
+    def size (self):
+        return self.sizex, slef.sizey
