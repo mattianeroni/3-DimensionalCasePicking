@@ -1,4 +1,8 @@
 from matplotlib.patches import Rectangle
+import collections
+
+
+OrderLine = collections.namedtuple("OrderLine", "cases")
 
 
 def rotate (case):
@@ -41,3 +45,4 @@ class Case (object):
 
     def rotate (self):
         self.sizex, self.sizey = self.sizey, self.sizex
+    
