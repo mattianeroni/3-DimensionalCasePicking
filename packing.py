@@ -78,13 +78,20 @@ def SFF (cases, layersize):
     X, Y = layersize
     shelves = [[0,0,0],]  # (lastx, hshelf, ceil)
     for case in cases:
-        if case.sizex < case.sizey and case.sizey + lastx <= X:
-            case.rotate()
+        if case.sizey > Y or case.sizex > X:
+            return False
 
-        sizex, sizey = case.sizex, case.sizey
         for s in shelves:
             lastx, hshelf, ceil = s
-            if hshelf + sizey <= ceil and lastx + sizex <= X:
+            if sizey < sizex and (sizex + hshelf <= ceil or ceil == 0):
+                case.rotate()
+
+            sizex, sizey = case.sizex, case.sizey
+            if ceil == 0:
+                ceil = sizey
+                s[2] = sizey
+
+            if lastx + sizex <= X and hshelf + sizey <= ceil:
                 case.x, case.y = lastx, hshelf
                 s[0] = case.right
                 break
@@ -94,7 +101,26 @@ def SFF (cases, layersize):
             if ceil + sizey > Y:
                 return False
 
-            shelves.append([0,ceil,ceil+sizey])
+            shelves.append([0, ceil, ceil+sizey])
             case.x, case.y = 0, ceil
-            
+
     return True
+
+
+
+@functools.lru_cache(maxsize=cachesize)
+def SBWF (cases, layersize):
+    """
+    *Shelf Best Width Fit*
+
+    Similar to the First Fit, but the shelves are tried using a smarter logic.
+
+    For each case, (i) determine the correct orientation, (ii) try to place it
+    in all the shelves prioritizing those in which the maining width is
+    minimized, (iii) if it does not fit and it is not possible to open a new
+    shelf returns.
+
+    """
+    X, Y = layersize
+    shelves = [[0,0,0],]  # (lastx, hshelf, ceil)
+    pass
