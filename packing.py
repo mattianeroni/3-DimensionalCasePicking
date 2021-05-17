@@ -35,7 +35,7 @@ def SNF (cases, layersize):
      _____________________________________
     |                                     |
     |                                     |
-    |_____________________________________|
+    |.....................................| -> Ceil of shelf (not definitive)
     |#####|    |                          |
     |#####|####|__________________________| -> Current Shelf
 
@@ -55,4 +55,46 @@ def SNF (cases, layersize):
         case.x, case.y = lastx, hshelf
         lastx, ceil = case.right, max(ceil, case.top)
 
+    return True
+
+
+
+@functools.lru_cache(maxsize=cachesize)
+def SFF (cases, layersize):
+    """
+    *Shelf First Fit*
+
+    For each case, (i) determine the correct orientation, (ii) try to place it
+    in all the shelves staring from the first untils it does not fit, (iii) if
+    it does not fit and it is not possible to open a new shelf returns.
+     _____________________________________
+    |_____________________________________| -> Third Shelf
+    |#########################|           |
+    |#########################|___________| -> Second Shelf
+    |#####|    |###########|              |
+    |#####|####|###########|______________| -> First Shelf
+
+    """
+    X, Y = layersize
+    shelves = [[0,0,0],]  # (lastx, hshelf, ceil)
+    for case in cases:
+        if case.sizex < case.sizey and case.sizey + lastx <= X:
+            case.rotate()
+
+        sizex, sizey = case.sizex, case.sizey
+        for s in shelves:
+            lastx, hshelf, ceil = s
+            if hshelf + sizey <= ceil and lastx + sizex <= X:
+                case.x, case.y = lastx, hshelf
+                s[0] = case.right
+                break
+            # Possibility to make the ceiling higher for the last shelf?
+        else:
+            ceil = shelves[-1][2]
+            if ceil + sizey > Y:
+                return False
+
+            shelves.append([0,ceil,ceil+sizey])
+            case.x, case.y = 0, ceil
+            
     return True
