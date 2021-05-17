@@ -7,12 +7,12 @@ import matplotlib.pyplot as plt
 cachesize = 126
 
 
-def test (algorithm, cases, layersize, plotsize=(10,6)):
+def test (algorithm, cases, layersize, figsize=(10,6)):
     suc = algorithm(cases, layersize)
     if not suc:
         print("Unsuccesful packing.")
     else:
-        _, ax = plt.subplots()
+        _, ax = plt.subplots(figsize=figsize)
         ax.add_patch(Rectangle((0,0), 1, 1,linewidth=3, edgecolor='r', facecolor='none'))
         for case in cases:
             ax.add_patch(Rectangle( (case.x/layersize[0], case.y/layersize[1]),
