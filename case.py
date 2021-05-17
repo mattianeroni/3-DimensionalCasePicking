@@ -1,4 +1,3 @@
-from matplotlib.patches import Rectangle
 import collections
 
 
@@ -21,7 +20,7 @@ class Case (object):
         self.height = height
 
     def __hash__(self):
-        return hash(self)
+        return hash(str(self))
 
     @property
     def top (self):
@@ -39,10 +38,5 @@ class Case (object):
     def down (self):
         return self.y
 
-    @property
-    def image (self):
-        return Rectangle((self.x,self.y), self.sizex, self.sizey)
-
     def rotate (self):
         self.sizex, self.sizey = self.sizey, self.sizex
-    
