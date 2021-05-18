@@ -43,6 +43,8 @@ def SNF (cases, layersize):
     X, Y = layersize
     floor, lastx, ceil = 0, 0, 0
     for case in cases:
+        if case.x < case.y and case.sizey + lastx <= X:
+            case.rotate()
         
         if case.sizex + lastx > X:
             lastx, floor = 0, ceil
@@ -77,11 +79,15 @@ def SFF (cases, layersize):
     shelves = [[0,0,0],]  # (lastx, floor, ceil) for each shelf
     for case in cases:
         sizex, sizey = case.sizex, case.sizey
+        
+        if shelves[0][2] == 0:
+            shelves[0][2] = sizey
+            case.x, case.y = 0, 0
+            shelves[0][0] = case.right
+            continue
+            
         for s in shelves:
             lastx, floor, ceil = s
-
-            if ceil == 0:
-                ceil, s[2] = sizey, sizey
 
             if lastx + sizex <= X and floor + sizey <= ceil:
                 case.x, case.y = lastx, floor
@@ -116,5 +122,68 @@ def SBWF (cases, layersize):
     """
     X, Y = layersize
     shelves = [[0,0,0],]  # (lastx, floor, ceil)
-    for s in shelves:
+    for case in cases:
+        sizex, sizey = case.sizex, case.sizey
         
+        if shelves[0][2] == 0:
+            shelves[0][2] == sizey
+            case.x, case.y = 0, 0
+            shelves[0][0] = case.right
+            continue
+        
+        options = sorted([s for s in shelves if s[2] >= sizey + s[1] and s[0] + sizex <= X ], 
+                         key=lambda s: X - (s[0] + sizex),
+                         reverse=False)
+        if len(options) > 0:
+            lastx, floor, _ = options[0]
+            case.x, case.y = lastx, floor
+            options[0][0] = case.right
+        else:
+            ceil = shelves[-1][2]
+            if ceil + sizey > Y:
+                return False
+            
+            case.x, case.y = 0, ceil
+            shelves.append([case.right, ceil, case.top])
+        
+
+        
+        
+@functools.lru_cache(maxsize=cachesize)
+def SWWF (cases, layersize):
+    """
+    *Shelf Worst Width Fit*
+
+    Equal to the Shelf Best Width Fit, but the shelves where the remaining width 
+    is maximised are prioritized.
+
+    """
+    X, Y = layersize
+    shelves = [[0,0,0],]  # (lastx, floor, ceil)
+    for case in cases:
+        sizex, sizey = case.sizex, case.sizey
+        
+        if shelves[0][2] == 0:
+            shelves[0][2] == sizey
+            case.x, case.y = 0, 0
+            shelves[0][0] = case.right
+            continue
+        
+        options = sorted([s for s in shelves if s[2] >= sizey + s[1] and s[0] + sizex <= X ], 
+                         key=lambda s: X - (s[0] + sizex),
+                         reverse=True)
+        if len(options) > 0:
+            lastx, floor, _ = options[0]
+            case.x, case.y = lastx, floor
+            options[0][0] = case.right
+        else:
+            ceil = shelves[-1][2]
+            if ceil + sizey > Y:
+                return False
+            
+            case.x, case.y = 0, ceil
+            shelves.append([case.right, ceil, case.top])
+            
+            
+            
+            
