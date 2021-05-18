@@ -13,7 +13,7 @@ def test (algorithm, cases, layersize, figsize=(10,6)):
         print("Unsuccesful packing.")
     else:
         _, ax = plt.subplots(figsize=figsize)
-        ax.add_patch(Rectangle((0,0), 1, 1,linewidth=3, edgecolor='r', facecolor='none'))
+        ax.add_patch(Rectangle((0,0), 1, 1, linewidth=3, edgecolor='r', facecolor='none'))
         for case in cases:
             ax.add_patch(Rectangle( (case.x/layersize[0], case.y/layersize[1]),
                                     case.sizex/layersize[0],
@@ -41,18 +41,16 @@ def SNF (cases, layersize):
 
     """
     X, Y = layersize
-    hshelf, lastx, ceil = 0, 0, 0
+    floor, lastx, ceil = 0, 0, 0
     for case in cases:
-        if case.sizex < case.sizey and case.sizey + lastx <= X:
-            case.rotate()
-
+        
         if case.sizex + lastx > X:
-            lastx, hshelf = 0, ceil
+            lastx, floor = 0, ceil
 
-        if case.sizey + hshelf > Y:
+        if case.sizey + floor > Y:
             return False
 
-        case.x, case.y = lastx, hshelf
+        case.x, case.y = lastx, floor
         lastx, ceil = case.right, max(ceil, case.top)
 
     return True
@@ -76,33 +74,28 @@ def SFF (cases, layersize):
 
     """
     X, Y = layersize
-    shelves = [[0,0,0],]  # (lastx, hshelf, ceil)
+    shelves = [[0,0,0],]  # (lastx, floor, ceil) for each shelf
     for case in cases:
-        if case.sizey > Y or case.sizex > X:
-            return False
-
+        sizex, sizey = case.sizex, case.sizey
         for s in shelves:
-            lastx, hshelf, ceil = s
-            if sizey < sizex and (sizex + hshelf <= ceil or ceil == 0):
-                case.rotate()
+            lastx, floor, ceil = s
 
-            sizex, sizey = case.sizex, case.sizey
             if ceil == 0:
-                ceil = sizey
-                s[2] = sizey
+                ceil, s[2] = sizey, sizey
 
-            if lastx + sizex <= X and hshelf + sizey <= ceil:
-                case.x, case.y = lastx, hshelf
+            if lastx + sizex <= X and floor + sizey <= ceil:
+                case.x, case.y = lastx, floor
                 s[0] = case.right
                 break
-            # Possibility to make the ceiling higher for the last shelf?
+            # Is there the possibility to make the ceiling higher for the last shelf?
+            # For the moment this is not considered.
         else:
             ceil = shelves[-1][2]
             if ceil + sizey > Y:
                 return False
-
-            shelves.append([0, ceil, ceil+sizey])
+            
             case.x, case.y = 0, ceil
+            shelves.append([case.right, ceil, case.top])
 
     return True
 
@@ -122,5 +115,6 @@ def SBWF (cases, layersize):
 
     """
     X, Y = layersize
-    shelves = [[0,0,0],]  # (lastx, hshelf, ceil)
-    pass
+    shelves = [[0,0,0],]  # (lastx, floor, ceil)
+    for s in shelves:
+        
