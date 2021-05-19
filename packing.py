@@ -42,7 +42,7 @@ def SNF (cases, layersize):
     """
     X, Y = layersize
     floor, lastx, ceil = 0, 0, 0
-    for case in cases:        
+    for case in cases:
         if case.sizex + lastx > X:
             lastx, floor = 0, ceil
 
@@ -76,13 +76,13 @@ def SFF (cases, layersize):
     shelves = [[0,0,0],]  # (lastx, floor, ceil) for each shelf
     for case in cases:
         sizex, sizey = case.sizex, case.sizey
-        
+
         if shelves[0][2] == 0:
             shelves[0][2] = sizey
             case.x, case.y = 0, 0
             shelves[0][0] = case.right
             continue
-            
+
         for s in shelves:
             lastx, floor, ceil = s
 
@@ -96,7 +96,7 @@ def SFF (cases, layersize):
             ceil = shelves[-1][2]
             if ceil + sizey > Y:
                 return False
-            
+
             case.x, case.y = 0, ceil
             shelves.append([case.right, ceil, case.top])
 
@@ -123,13 +123,12 @@ def SBWF (cases, layersize):
         sizex, sizey = case.sizex, case.sizey
 
         if shelves[0][2] == 0:
-            print("here")
             shelves[0][2] = sizey
             case.x, case.y = 0, 0
             shelves[0][0] = case.right
             continue
-        
-        options = sorted([s for s in shelves if sizey + s[1] <= s[2] and s[0] + sizex <= X ], 
+
+        options = sorted([s for s in shelves if sizey + s[1] <= s[2] and s[0] + sizex <= X],
                          key=lambda i: X - (i[0] + sizex),
                          reverse=False)
 
@@ -141,21 +140,21 @@ def SBWF (cases, layersize):
             ceil = shelves[-1][2]
             if ceil + sizey > Y:
                 return False
-            
+
             case.x, case.y = 0, ceil
             shelves.append([case.right, ceil, case.top])
-            
-    return True
-        
 
-        
-        
+    return True
+
+
+
+
 @functools.lru_cache(maxsize=cachesize)
 def SWWF (cases, layersize):
     """
     *Shelf Worst Width Fit*
 
-    Equal to the Shelf Best Width Fit, but the shelves where the remaining width 
+    Equal to the Shelf Best Width Fit, but the shelves where the remaining width
     is maximised are prioritized.
 
     """
@@ -163,14 +162,14 @@ def SWWF (cases, layersize):
     shelves = [[0,0,0],]  # (lastx, floor, ceil) for each shelf
     for case in cases:
         sizex, sizey = case.sizex, case.sizey
-        
+
         if shelves[0][2] == 0:
             shelves[0][2] = sizey
             case.x, case.y = 0, 0
             shelves[0][0] = case.right
             continue
-        
-        options = sorted([s for s in shelves if sizey + s[1] <= s[2] and s[0] + sizex <= X ], 
+
+        options = sorted([s for s in shelves if sizey + s[1] <= s[2] and s[0] + sizex <= X],
                          key=lambda s: X - (s[0] + sizex),
                          reverse=True)
         if len(options) > 0:
@@ -181,7 +180,52 @@ def SWWF (cases, layersize):
             ceil = shelves[-1][2]
             if ceil + sizey > Y:
                 return False
-            
+
             case.x, case.y = 0, ceil
             shelves.append([case.right, ceil, case.top])
+    return True
+
+
+
+
+@functools.lru_cache(maxsize=cachesize)
+def GBAF (cases, layersize):
+    """
+    *Guilliotine Best Area Fit*
+
+    This algorithm keeps track of all the empty spaces still available. Every time
+    a new case is placed in one of these spaces, it is replaced with two new spaces
+    breaking down the L-shaped space into two smaller rectangles.
+
+       Vertical Cutting            Horizontal Cutting
+     ____________________         ____________________
+    |    |               |       |                    |
+    |____|               |       |____________________|
+    |####|               |       |####|               |
+    |####|_______________|       |####|_______________|
+
+
+    In this particular case of "best area fit", priority is given to the
+    spaces characterised by smallest area.
+
+    """
+    X, Y = layersize
+    F = [(0, 0, X, Y), ]  # (x, y, sizex, sizey) For each rectangle
+
+    for case in cases:
+        F.sort(key=lambda s: s.sizex * s.sizey)
+        for i in range(len(F)):
+            space = F[i]
+            x, y, sizex, sizey = space
+            if space.sizex < case.sizex or space.sizey < case.sizey:
+                case.rotate()
+                if space.sizex < case.sizex or space.sizey < case.sizey:
+                    continue
+
+            case.x, case.y = x, y
+            F.pop(i)
+            F.extend([(), ()])
+        else:
+            return False
+
     return True
