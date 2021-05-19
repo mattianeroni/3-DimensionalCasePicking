@@ -18,9 +18,14 @@ class Case (object):
         self.weight = weight
         self.height = height
 
+        self.frozen_x = None
+        self.frozen_y = None
+        self.frozen_sizex = None
+        self.frozen_sizey = None
+
     def __hash__(self):
         return hash(str(self))
-    
+
     def __repr__(self):
         return f"Case(x={self.x}, y={self.y}, sizex={self.sizex}, sizey={self.sizey}, height={self.height}, weight={self.weight})"
 
@@ -42,3 +47,7 @@ class Case (object):
 
     def rotate (self):
         self.sizex, self.sizey = self.sizey, self.sizex
+
+    def froze (self):
+        self.frozen_x, self.frozen_y = self.x, self.y
+        self.frozen_sizex, self.frozen_sizey = self.sizex, self.sizey
