@@ -7,8 +7,8 @@ import matplotlib.pyplot as plt
 cachesize = 126
 
 
-def test (algorithm, cases, layersize, figsize=(10,6)):
-    suc = algorithm(cases, layersize)
+def test (algorithm, cases, layersize, figsize=(10,6), **kwargs):
+    suc = algorithm(cases, layersize, **kwargs)
     if not suc:
         print("Unsuccesful packing.")
     else:
@@ -189,7 +189,7 @@ def SWWF (cases, layersize):
 
 
 @functools.lru_cache(maxsize=cachesize)
-def GBAF (cases, layersize):
+def GBAF (cases, layersize, splitting="shorteraxis"):
     """
     *Guilliotine Best Area Fit*
 
@@ -213,18 +213,43 @@ def GBAF (cases, layersize):
     F = [(0, 0, X, Y), ]  # (x, y, sizex, sizey) For each rectangle
 
     for case in cases:
-        F.sort(key=lambda s: s.sizex * s.sizey)
+        F.sort(key=lambda s: s[2] * s[3])
         for i in range(len(F)):
             space = F[i]
             x, y, sizex, sizey = space
-            if space.sizex < case.sizex or space.sizey < case.sizey:
+            if sizex < case.sizex or sizey < case.sizey:
                 case.rotate()
-                if space.sizex < case.sizex or space.sizey < case.sizey:
+                if sizex < case.sizex or sizey < case.sizey:
                     continue
 
             case.x, case.y = x, y
             F.pop(i)
-            F.extend([(), ()])
+
+            if splitting == "shorteraxis":
+                if sizex < sizey:
+                    F.extend([(case.right, y, sizex - case.sizex, case.sizey), (x, case.top, sizex, sizey - case.sizey)])  # Horizontal cutting
+                else:
+                    F.extend([(case.right, y, sizex - case.sizex, sizey), (x, case.top, case.sizex, sizey - case.sizey)])  # Vertical cutting
+            elif splitting == "longeraxis":
+                if sizex > sizey:
+                    F.extend([(case.right, y, sizex - case.sizex, case.sizey), (x, case.top, sizex, sizey - case.sizey)])  # Horizontal cutting
+                else:
+                    F.extend([(case.right, y, sizex - case.sizex, sizey), (x, case.top, case.sizex, sizey - case.sizey)])  # Vertical cutting
+            elif splitting == "shorterleftover":
+                if sizex - case.sizex < sizey - case.sizey:
+                    F.extend([(case.right, y, sizex - case.sizex, case.sizey), (x, case.top, sizex, sizey - case.sizey)])  # Horizontal cutting
+                else:
+                    F.extend([(case.right, y, sizex - case.sizex, sizey), (x, case.top, case.sizex, sizey - case.sizey)])  # Vertical cutting
+            elif splitting == "longerleftover":
+                if sizex - case.sizex > sizey - case.sizey:
+                    F.extend([(case.right, y, sizex - case.sizex, case.sizey), (x, case.top, sizex, sizey - case.sizey)])  # Horizontal cutting
+                else:
+                    F.extend([(case.right, y, sizex - case.sizex, sizey), (x, case.top, case.sizex, sizey - case.sizey)])  # Vertical cutting
+            else:
+                raise Exception("Splitting rule not defined.")
+
+
+            break
         else:
             return False
 
