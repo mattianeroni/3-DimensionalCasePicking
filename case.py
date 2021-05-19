@@ -1,12 +1,11 @@
 import collections
 
 
-OrderLine = collections.namedtuple("OrderLine", "cases")
+OrderLine = collections.namedtuple("OrderLine", "code cases")
 
 
 def rotate (case):
     case.sizex, case.sizey = case.sizey, case.sizex
-
 
 
 class Case (object):
@@ -21,6 +20,9 @@ class Case (object):
 
     def __hash__(self):
         return hash(str(self))
+    
+    def __repr__(self):
+        return f"Case(x={self.x}, y={self.y}, sizex={self.sizex}, sizey={self.sizey}, height={self.height}, weight={self.weight})"
 
     @property
     def top (self):

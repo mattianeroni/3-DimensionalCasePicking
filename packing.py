@@ -42,10 +42,7 @@ def SNF (cases, layersize):
     """
     X, Y = layersize
     floor, lastx, ceil = 0, 0, 0
-    for case in cases:
-        if case.x < case.y and case.sizey + lastx <= X:
-            case.rotate()
-        
+    for case in cases:        
         if case.sizex + lastx > X:
             lastx, floor = 0, ceil
 
@@ -121,19 +118,21 @@ def SBWF (cases, layersize):
 
     """
     X, Y = layersize
-    shelves = [[0,0,0],]  # (lastx, floor, ceil)
+    shelves = [[0,0,0],]  # (lastx, floor, ceil) for each shelf
     for case in cases:
         sizex, sizey = case.sizex, case.sizey
-        
+
         if shelves[0][2] == 0:
-            shelves[0][2] == sizey
+            print("here")
+            shelves[0][2] = sizey
             case.x, case.y = 0, 0
             shelves[0][0] = case.right
             continue
         
-        options = sorted([s for s in shelves if s[2] >= sizey + s[1] and s[0] + sizex <= X ], 
-                         key=lambda s: X - (s[0] + sizex),
+        options = sorted([s for s in shelves if sizey + s[1] <= s[2] and s[0] + sizex <= X ], 
+                         key=lambda i: X - (i[0] + sizex),
                          reverse=False)
+
         if len(options) > 0:
             lastx, floor, _ = options[0]
             case.x, case.y = lastx, floor
@@ -145,6 +144,8 @@ def SBWF (cases, layersize):
             
             case.x, case.y = 0, ceil
             shelves.append([case.right, ceil, case.top])
+            
+    return True
         
 
         
@@ -159,17 +160,17 @@ def SWWF (cases, layersize):
 
     """
     X, Y = layersize
-    shelves = [[0,0,0],]  # (lastx, floor, ceil)
+    shelves = [[0,0,0],]  # (lastx, floor, ceil) for each shelf
     for case in cases:
         sizex, sizey = case.sizex, case.sizey
         
         if shelves[0][2] == 0:
-            shelves[0][2] == sizey
+            shelves[0][2] = sizey
             case.x, case.y = 0, 0
             shelves[0][0] = case.right
             continue
         
-        options = sorted([s for s in shelves if s[2] >= sizey + s[1] and s[0] + sizex <= X ], 
+        options = sorted([s for s in shelves if sizey + s[1] <= s[2] and s[0] + sizex <= X ], 
                          key=lambda s: X - (s[0] + sizex),
                          reverse=True)
         if len(options) > 0:
@@ -183,7 +184,4 @@ def SWWF (cases, layersize):
             
             case.x, case.y = 0, ceil
             shelves.append([case.right, ceil, case.top])
-            
-            
-            
-            
+    return True
