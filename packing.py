@@ -282,6 +282,10 @@ def GWAF (cases, layersize, splitting="shorteraxis"):
         for i in range(len(F)):
             space = F[i]
             x, y, sizex, sizey = space
+
+            if sizex * sizey < case.sizex * case.sizey:
+                return False
+                
             if sizex < case.sizex or sizey < case.sizey:
                 case.rotate()
                 if sizex < case.sizex or sizey < case.sizey:
