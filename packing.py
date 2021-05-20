@@ -1,5 +1,6 @@
 import functools
 import random
+import itertools
 from matplotlib.patches import Rectangle
 import matplotlib.pyplot as plt
 
@@ -234,24 +235,32 @@ def GBAF (cases, layersize, splitting="shorteraxis"):
             else:
                 if splitting == "shorteraxis":
                     if sizex < sizey:
-                        F.extend([(case.right, y, sizex - case.sizex, case.sizey), (x, case.top, sizex, sizey - case.sizey)])  # Horizontal cutting
+                        F.extend([(case.right, y, sizex - case.sizex, case.sizey), 
+                                  (x, case.top, sizex, sizey - case.sizey)])  # Horizontal cutting
                     else:
-                        F.extend([(case.right, y, sizex - case.sizex, sizey), (x, case.top, case.sizex, sizey - case.sizey)])  # Vertical cutting
+                        F.extend([(case.right, y, sizex - case.sizex, sizey), 
+                                  (x, case.top, case.sizex, sizey - case.sizey)])  # Vertical cutting
                 elif splitting == "longeraxis":
                     if sizex > sizey:
-                        F.extend([(case.right, y, sizex - case.sizex, case.sizey), (x, case.top, sizex, sizey - case.sizey)])  # Horizontal cutting
+                        F.extend([(case.right, y, sizex - case.sizex, case.sizey), 
+                                  (x, case.top, sizex, sizey - case.sizey)])  # Horizontal cutting
                     else:
-                        F.extend([(case.right, y, sizex - case.sizex, sizey), (x, case.top, case.sizex, sizey - case.sizey)])  # Vertical cutting
+                        F.extend([(case.right, y, sizex - case.sizex, sizey), 
+                                  (x, case.top, case.sizex, sizey - case.sizey)])  # Vertical cutting
                 elif splitting == "shorterleftover":
                     if sizex - case.sizex < sizey - case.sizey:
-                        F.extend([(case.right, y, sizex - case.sizex, case.sizey), (x, case.top, sizex, sizey - case.sizey)])  # Horizontal cutting
+                        F.extend([(case.right, y, sizex - case.sizex, case.sizey), 
+                                  (x, case.top, sizex, sizey - case.sizey)])  # Horizontal cutting
                     else:
-                        F.extend([(case.right, y, sizex - case.sizex, sizey), (x, case.top, case.sizex, sizey - case.sizey)])  # Vertical cutting
+                        F.extend([(case.right, y, sizex - case.sizex, sizey), 
+                                  (x, case.top, case.sizex, sizey - case.sizey)])  # Vertical cutting
                 elif splitting == "longerleftover":
                     if sizex - case.sizex > sizey - case.sizey:
-                        F.extend([(case.right, y, sizex - case.sizex, case.sizey), (x, case.top, sizex, sizey - case.sizey)])  # Horizontal cutting
+                        F.extend([(case.right, y, sizex - case.sizex, case.sizey), 
+                                  (x, case.top, sizex, sizey - case.sizey)])  # Horizontal cutting
                     else:
-                        F.extend([(case.right, y, sizex - case.sizex, sizey), (x, case.top, case.sizex, sizey - case.sizey)])  # Vertical cutting
+                        F.extend([(case.right, y, sizex - case.sizex, sizey), 
+                                  (x, case.top, case.sizex, sizey - case.sizey)])  # Vertical cutting
                 else:
                     raise Exception("Splitting rule not defined.")
 
@@ -303,24 +312,32 @@ def GWAF (cases, layersize, splitting="shorteraxis"):
             else:
                 if splitting == "shorteraxis":
                     if sizex < sizey:
-                        F.extend([(case.right, y, sizex - case.sizex, case.sizey), (x, case.top, sizex, sizey - case.sizey)])  # Horizontal cutting
+                        F.extend([(case.right, y, sizex - case.sizex, case.sizey), 
+                                  (x, case.top, sizex, sizey - case.sizey)])  # Horizontal cutting
                     else:
-                        F.extend([(case.right, y, sizex - case.sizex, sizey), (x, case.top, case.sizex, sizey - case.sizey)])  # Vertical cutting
+                        F.extend([(case.right, y, sizex - case.sizex, sizey), 
+                                  (x, case.top, case.sizex, sizey - case.sizey)])  # Vertical cutting
                 elif splitting == "longeraxis":
                     if sizex > sizey:
-                        F.extend([(case.right, y, sizex - case.sizex, case.sizey), (x, case.top, sizex, sizey - case.sizey)])  # Horizontal cutting
+                        F.extend([(case.right, y, sizex - case.sizex, case.sizey), 
+                                  (x, case.top, sizex, sizey - case.sizey)])  # Horizontal cutting
                     else:
-                        F.extend([(case.right, y, sizex - case.sizex, sizey), (x, case.top, case.sizex, sizey - case.sizey)])  # Vertical cutting
+                        F.extend([(case.right, y, sizex - case.sizex, sizey), 
+                                  (x, case.top, case.sizex, sizey - case.sizey)])  # Vertical cutting
                 elif splitting == "shorterleftover":
                     if sizex - case.sizex < sizey - case.sizey:
-                        F.extend([(case.right, y, sizex - case.sizex, case.sizey), (x, case.top, sizex, sizey - case.sizey)])  # Horizontal cutting
+                        F.extend([(case.right, y, sizex - case.sizex, case.sizey), 
+                                  (x, case.top, sizex, sizey - case.sizey)])  # Horizontal cutting
                     else:
-                        F.extend([(case.right, y, sizex - case.sizex, sizey), (x, case.top, case.sizex, sizey - case.sizey)])  # Vertical cutting
+                        F.extend([(case.right, y, sizex - case.sizex, sizey), 
+                                  (x, case.top, case.sizex, sizey - case.sizey)])  # Vertical cutting
                 elif splitting == "longerleftover":
                     if sizex - case.sizex > sizey - case.sizey:
-                        F.extend([(case.right, y, sizex - case.sizex, case.sizey), (x, case.top, sizex, sizey - case.sizey)])  # Horizontal cutting
+                        F.extend([(case.right, y, sizex - case.sizex, case.sizey), 
+                                  (x, case.top, sizex, sizey - case.sizey)])  # Horizontal cutting
                     else:
-                        F.extend([(case.right, y, sizex - case.sizex, sizey), (x, case.top, case.sizex, sizey - case.sizey)])  # Vertical cutting
+                        F.extend([(case.right, y, sizex - case.sizex, sizey), 
+                                  (x, case.top, case.sizex, sizey - case.sizey)])  # Vertical cutting
                 else:
                     raise Exception("Splitting rule not defined.")
 
@@ -346,13 +363,13 @@ def _split (space, overlap):
     x2, y2, sizex2, sizey2 = overlap
     newspaces = [None, None, None, None]
     if x1 < x2:
-        newspaces[0] = [x1, y1, x2 - x1, sizey1]
+        newspaces[0] = (x1, y1, x2 - x1, sizey1)
     if (a := x1 + sizex1) > (b := x2 + sizex2):
-        newspaces[1] = [b, y1, a - b, sizey1]
+        newspaces[1] = (b, y1, a - b, sizey1)
     if y1 < y2:
-        newspaces[2] = [x1, y1, sizex1, y2 - y1]
+        newspaces[2] = (x1, y1, sizex1, y2 - y1)
     if (a := y1 + sizey1) > (b := y2 + sizey2):
-        newspaces[3] = [x1, b, sizex1, a - b]
+        newspaces[3] = (x1, b, sizex1, a - b)
     return list(filter(None, newspaces))
 
 
@@ -364,7 +381,7 @@ def _overlap (case, space):
     top = min(case.y + case.sizey, y + sizey)
     bottom = max(case.y, y)
     if top > bottom and right > left:
-        return [left, bottom, right - left, top - bottom]
+        return (left, bottom, right - left, top - bottom)
 
 
 
@@ -377,10 +394,8 @@ def MRBL (cases, layersize):
     X, Y = layersize
     F = [(0, 0, X, Y), ]  # (x, y, sizex, sizey) For each rectangle
     for case in cases:
-        F.sort(key=lambda i: i[0])
-        F.sort(key=lambda i: i[1])
-        for i in range(len(F)):
-            x, y, sizex, sizey = F[i]
+        F.sort(key=lambda i: (i[0], i[1]))
+        for x, y, sizex, sizey in F:
             if sizex * sizey < case.sizex * case.sizey:
                 continue
 
@@ -393,15 +408,13 @@ def MRBL (cases, layersize):
             break
         else:
             return False
-
-        for i in range(len(F)):
-            space = F[i]
-            if (over := _overlap(case, space)):
-                F.pop(i)
+        
+        for space in tuple(F):
+            if (over := _overlap(case, space)) is not None:
+                F.remove(space)
                 F.extend(_split(space, over))
 
-        for s in (j for i in F for j in F if _contains(i, j)):
+        for s in (j for i in F for j in F if i != j and _contains(i,j)):
             F.remove(s)
-
 
     return True
