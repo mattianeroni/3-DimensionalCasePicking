@@ -285,7 +285,7 @@ def GWAF (cases, layersize, splitting="shorteraxis"):
 
             if sizex * sizey < case.sizex * case.sizey:
                 return False
-                
+
             if sizex < case.sizex or sizey < case.sizey:
                 case.rotate()
                 if sizex < case.sizex or sizey < case.sizey:
@@ -327,5 +327,81 @@ def GWAF (cases, layersize, splitting="shorteraxis"):
             break
         else:
             return False
+
+    return True
+
+
+
+def _contains (container, contained):
+    x1, y1, sizex1, sizey1 = container
+    x2, y2, sizex2, sizey2 = contained
+    if x1 <= x2 and y1 <= y2 and x1 + sizex1 >= x2 + sizex2 and y1 + sizey1 >= y2 + sizey2:
+        return True
+    return False
+
+
+
+def _split (space, overlap):
+    x1, y1, sizex1, sizey1 = space
+    x2, y2, sizex2, sizey2 = overlap
+    newspaces = [None, None, None, None]
+    if x1 < x2:
+        newspaces[0] = [x1, y1, x2 - x1, sizey1]
+    if (a := x1 + sizex1) > (b := x2 + sizex2):
+        newspaces[1] = [b, y1, a - b, sizey1]
+    if y1 < y2:
+        newspaces[2] = [x1, y1, sizex1, y2 - y1]
+    if (a := y1 + sizey1) > (b := y2 + sizey2):
+        newspaces[3] = [x1, b, sizex1, a - b]
+    return list(filter(None, newspaces))
+
+
+
+def _overlap (case, space):
+    x, y, sizex, sizey = space
+    right = min(case.x + case.sizex, x + sizex)
+    left = max(case.x, x)
+    top = min(case.y + case.sizey, y + sizey)
+    bottom = max(case.y, y)
+    if top > bottom and right > left:
+        return [left, bottom, right - left, top - bottom]
+
+
+
+@functools.lru_cache(maxsize=cachesize)
+def MRBL (cases, layersize):
+    """
+    * Maximal Rectangles Bottom Left *
+
+    """
+    X, Y = layersize
+    F = [(0, 0, X, Y), ]  # (x, y, sizex, sizey) For each rectangle
+    for case in cases:
+        F.sort(key=lambda i: i[0])
+        F.sort(key=lambda i: i[1])
+        for i in range(len(F)):
+            x, y, sizex, sizey = F[i]
+            if sizex * sizey < case.sizex * case.sizey:
+                continue
+
+            if sizex < case.sizex or sizey < case.sizey:
+                case.rotate()
+                if sizex < case.sizex or sizey < case.sizey:
+                    continue
+
+            case.x, case.y = x, y
+            break
+        else:
+            return False
+
+        for i in range(len(F)):
+            space = F[i]
+            if (over := _overlap(case, space)):
+                F.pop(i)
+                F.extend(_split(space, over))
+
+        for s in (j for i in F for j in F if _contains(i, j)):
+            F.remove(s)
+
 
     return True
