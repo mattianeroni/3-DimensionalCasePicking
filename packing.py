@@ -369,7 +369,7 @@ def _contains (container, contained):
 def _equal (ispace, jspace):
     x1, y1, sizex1, sizey1 = ispace
     x2, y2, sizex2, sizey2 = jspace
-    if x1 == x2 and y1 == y2 and x1 + sizex1 == x2 + sizex2 and y1 + sizey1 == y2 + sizey2:
+    if x1 == x2 and y1 == y2 and sizex1 == sizex2 and sizey1 == sizey2:
         return True
     return False
 
