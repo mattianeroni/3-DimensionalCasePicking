@@ -1,3 +1,11 @@
+"""
+
+All these algorithms are taken from [1] Jukka Jylang - A Thousand Ways to Pack the Bin - A Practical Approach to Two-Dimensional Rectangle Bin Packing (2010).
+
+Author: Mattia Neroni, Ph.D., Eng. (May 2021).
+
+"""
+
 import functools
 import random
 import itertools
@@ -358,6 +366,14 @@ def _contains (container, contained):
 
 
 
+def _equal (ispace, jspace):
+    x1, y1, sizex1, sizey1 = ispace
+    x2, y2, sizex2, sizey2 = jspace
+    if x1 == x2 and y1 == y2 and x1 + sizex1 == x2 + sizex2 and y1 + sizey1 == y2 + sizey2:
+        return True
+    return False
+
+
 def _split (space, overlap):
     x1, y1, sizex1, sizey1 = space
     x2, y2, sizex2, sizey2 = overlap
@@ -371,7 +387,6 @@ def _split (space, overlap):
     if (a := y1 + sizey1) > (b := y2 + sizey2):
         newspaces[3] = (x1, b, sizex1, a - b)
     return list(filter(None, newspaces))
-
 
 
 def _overlap (case, space):
@@ -414,7 +429,12 @@ def MRBL (cases, layersize):
                 F.remove(space)
                 F.extend(_split(space, over))
 
-        for s in (j for i in F for j in F if i != j and _contains(i,j)):
-            F.remove(s)
+        to_remove = set()
+        for i, j in itertools.combinations(F, 2):
+            if _contains(i, j):
+                to_remove.add(j)
+            if _contains(j, i) and not _equal(i, j):
+                to_remove.add(i)
+        F = list(set(F) - to_remove)
 
     return True
