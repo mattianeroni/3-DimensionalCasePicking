@@ -6,7 +6,7 @@ In this file are implemented many 2-dimensional packing algorithms (or strip pac
 written and designed to be implemented in the 2-Dimensional Case Picking algorithm that comes from the collaboration
 between University of Parma, University of Modena, and Universitat Oberta de Catalunya.
 
-For implementing all these algorithms are taken from Jukka Jylang (2010) - A Thousand Ways to Pack the Bin: A Practical
+All algorithms are taken from Jukka Jylang (2010) - A Thousand Ways to Pack the Bin: A Practical
 Approach to Two-Dimensional Rectangle Bin Packing.
 
 Author: Mattia Neroni, Ph.D., Eng. (May 2021).
