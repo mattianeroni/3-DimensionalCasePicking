@@ -14,6 +14,7 @@ Author: Mattia Neroni, Ph.D., Eng. (May 2021).
 """
 import functools
 import random
+import operator
 import itertools
 from matplotlib.patches import Rectangle
 import matplotlib.pyplot as plt
