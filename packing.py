@@ -404,7 +404,15 @@ def _overlap (case, space):
 def MRBL (cases, layersize):
     """
     * Maximal Rectangles Bottom Left *
-
+    
+    Similar to the guilliotine, but every time a new case is placed, no cut is made, both
+    newly generated spaces are kept in memory. This introduce the necessity to make some 
+    additional controls on overlaps and possible spaces containing the others.
+    These aspects make this algorithm usually more performant but also slower.
+    
+    In this case (i.e., "bottom left") priority is given to the spaces in the bottom left
+    corner.
+    
     """
     X, Y = layersize
     F = [(0, 0, X, Y), ]  # (x, y, sizex, sizey) For each rectangle
