@@ -1,11 +1,17 @@
 """
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+                                             *  2-Dimensional Case Picking  *
 
-All these algorithms are taken from [1] Jukka Jylang - A Thousand Ways to Pack the Bin - A Practical Approach to Two-Dimensional Rectangle Bin Packing (2010).
+In this file are implemented many 2-dimensional packing algorithms (or strip packing algorithms). They have been
+written and designed to be implemented in the 2-Dimensional Case Picking algorithm that comes from the collaboration
+between University of Parma, University of Modena, and Universitat Oberta de Catalunya.
+
+For implementing all these algorithms are taken from Jukka Jylang (2010) - A Thousand Ways to Pack the Bin: A Practical
+Approach to Two-Dimensional Rectangle Bin Packing.
 
 Author: Mattia Neroni, Ph.D., Eng. (May 2021).
-
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 """
-
 import functools
 import random
 import itertools
@@ -13,10 +19,25 @@ from matplotlib.patches import Rectangle
 import matplotlib.pyplot as plt
 
 
+# The cache size.
+# All the results of the  packing algorithms are 
+#
 cachesize = 126
 
 
-def test (algorithm, cases, layersize, figsize=(10,6), **kwargs):
+
+def test (algorithm, cases, layersize=(120,80), figsize=(10,6), **kwargs):
+    """
+    This method runs a specific algorithm on a given set of cases to be packed in 
+    a layer, and plots the resulting solution using matplotlib library.
+    
+    :param algorithm: The algorithm to test.
+    :param cases: The cases to pack.
+    :param layersize: The size of the layer.
+    :param figsize: The size of the plotted figure.
+    :param **kwargs: Other eventual arguments needed by the algorithm.
+    
+    """
     suc = algorithm(cases, layersize, **kwargs)
     if not suc:
         print("Unsuccesful packing.")
