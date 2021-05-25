@@ -277,15 +277,21 @@ def GBAF (cases, layersize, splitting="shorteraxis"):
     F = [(0, 0, X, Y), ]  # (x, y, sizex, sizey) For each rectangle
 
     for case in cases:
+        # Sort spaces from the smallest to the biggest one.
         F.sort(key=lambda s: s[2] * s[3])
         for i in range(len(F)):
-            space = F[i]
-            x, y, sizex, sizey = space
+            x, y, sizex, sizey = F[i]
+            # Check the area as a preliminar control
+            if sizex * sizey < case.sizex * case.sizey:
+                continue
+            # Try to eventually rotate the item if the are fits, but the width 
+            # and the height not.
             if sizex < case.sizex or sizey < case.sizey:
                 case.rotate()
                 if sizex < case.sizex or sizey < case.sizey:
                     continue
-
+            
+            # If it fits place the item and remove the space from the set of spaces.
             case.x, case.y = x, y
             F.pop(i)
 
