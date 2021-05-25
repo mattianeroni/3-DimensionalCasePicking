@@ -20,8 +20,8 @@ import matplotlib.pyplot as plt
 
 
 # The cache size.
-# All the results of the  packing algorithms are 
-#
+# All the results of the packing algorithms are cached to eventually speed up 
+# the performance.
 cachesize = 126
 
 
@@ -58,30 +58,40 @@ def test (algorithm, cases, layersize=(120,80), figsize=(10,6), **kwargs):
 @functools.lru_cache(maxsize=cachesize)
 def SNF (cases, layersize):
     """
-    *Shelf Next Fit*
+                * Shelf Next Fit *
 
-    For each case, (i) determine the correct orientation, (ii) try to place it
-    in the current shelf, (iii) if it does not fit open a new shelf.
-     _____________________________________
-    |                                     |
-    |                                     |
-    |.....................................| -> Ceil of shelf (not definitive)
-    |#####|    |                          |
-    |#####|####|__________________________| -> Current Shelf
+    For each case:
+      (i)   try to place it in the current shelf, 
+      (ii)  if the ceiling of the shelf is too low, make it as high 
+            as the case,
+      (iii) if it does not fit open a new shelf,
+      (iv)  if it still does not fit, interrupt.
+    End.
+
+           _____________________________________
+          |                                     |
+          |                                     |
+          |.....................................| -> Ceil of shelf (not definitive)
+          |#####|    |                          |
+          |#####|####|__________________________| -> Current Shelf
+    
 
     """
     X, Y = layersize
     floor, lastx, ceil = 0, 0, 0
     for case in cases:
+        # If it does not fit
         if case.sizex + lastx > X:
+            # Start the new shelf
             lastx, floor = 0, ceil
 
         if case.sizey + floor > Y:
+            # If it does not fit, interrupt.
             return False
-
+        # Place the case and eventually update the ceiling.
         case.x, case.y = lastx, floor
         lastx, ceil = case.right, max(ceil, case.top)
-
+        
     return True
 
 
@@ -89,44 +99,54 @@ def SNF (cases, layersize):
 @functools.lru_cache(maxsize=cachesize)
 def SFF (cases, layersize):
     """
-    *Shelf First Fit*
+                              * Shelf First Fit *
 
-    For each case, (i) determine the correct orientation, (ii) try to place it
-    in all the shelves staring from the first untils it does not fit, (iii) if
-    it does not fit and it is not possible to open a new shelf returns.
-     _____________________________________
-    |_____________________________________| -> Third Shelf
-    |#########################|           |
-    |#########################|___________| -> Second Shelf
-    |#####|    |###########|              |
-    |#####|####|###########|______________| -> First Shelf
+    For each case:
+      (i)   try to place it in all the shelves starting from the bottom,
+      (ii)  if it does not fit in any shelf, open a new shelf high as the case,
+      (iii) if it does not fit and it is not possible to open a new shelf, interrupt.
+    End.
+    
+    Differently from the Shelf Next Fit, even the height of the last shelf is given
+    and cannot be made bigger.
+                     _____________________________________
+                    |_____________________________________| --> Third Shelf
+                    |#########################|           |
+                    |#########################|___________| --> Second Shelf
+                    |#####|    |###########|              |
+                    |#####|####|###########|______________| --> First Shelf
 
     """
     X, Y = layersize
-    shelves = [[0,0,0],]  # (lastx, floor, ceil) for each shelf
+    shelves = [[0,0,0],]  # ( lastx, floor, ceil )  For each shelf
     for case in cases:
         sizex, sizey = case.sizex, case.sizey
-
+        
+        # If we are in the first shelf the ceiling height is defined using the 
+        # current case.
         if shelves[0][2] == 0:
+            if sizey > Y:
+                return False
             shelves[0][2] = sizey
             case.x, case.y = 0, 0
             shelves[0][0] = case.right
             continue
 
         for s in shelves:
+            # Try to place it in the currently analysed shelf without modifying 
+            # its height and without rotating the case.
+            # Is there the possibility to make the ceiling higher for the last shelf?
+            # For the moment this is not considered.
             lastx, floor, ceil = s
-
             if lastx + sizex <= X and floor + sizey <= ceil:
                 case.x, case.y = lastx, floor
                 s[0] = case.right
                 break
-            # Is there the possibility to make the ceiling higher for the last shelf?
-            # For the moment this is not considered.
         else:
+            # If none of the shelves is feasible try opening a new one.
             ceil = shelves[-1][2]
             if ceil + sizey > Y:
                 return False
-
             case.x, case.y = 0, ceil
             shelves.append([case.right, ceil, case.top])
 
@@ -137,40 +157,48 @@ def SFF (cases, layersize):
 @functools.lru_cache(maxsize=cachesize)
 def SBWF (cases, layersize):
     """
-    *Shelf Best Width Fit*
+                            * Shelf Best Width Fit *
 
-    Similar to the First Fit, but the shelves are tried using a smarter logic.
-
-    For each case, (i) determine the correct orientation, (ii) try to place it
-    in all the shelves prioritizing those in which the maining width is
-    minimized, (iii) if it does not fit and it is not possible to open a new
-    shelf returns.
+    Similar to the Shelf First Fit, but the shelves are observed using a smarter logic.
+    
+    For each case:
+      (i)   try to place the case in all the shelves going from the first one to the worst one,
+      (ii)  if it does not fit in any shelf, open a new shelf high as the case,
+      (iii) if it does not fit and it is not possible to open a new shelf, interrupt.
+    End.
+    
+    In this particular case (i.e., "best width fit"), the shelves where the remaining width
+    would be minimized are prioritized.
 
     """
     X, Y = layersize
-    shelves = [[0,0,0],]  # (lastx, floor, ceil) for each shelf
+    shelves = [[0,0,0],]  # (lastx, floor, ceil) For each shelf
     for case in cases:
         sizex, sizey = case.sizex, case.sizey
 
         if shelves[0][2] == 0:
+            # Define the first shelf which does not exists yet.
+            if sizey > Y:
+                return False
             shelves[0][2] = sizey
             case.x, case.y = 0, 0
             shelves[0][0] = case.right
             continue
-
+        # Sort feasible shelves accrding to the logic defined.
         options = sorted([s for s in shelves if sizey + s[1] <= s[2] and s[0] + sizex <= X],
                          key=lambda i: X - (i[0] + sizex),
                          reverse=False)
 
         if len(options) > 0:
+            # If there is a feasible shelf, place the item in it.
             lastx, floor, _ = options[0]
             case.x, case.y = lastx, floor
             options[0][0] = case.right
         else:
+            # If no shelf is feasible open a new shelf.
             ceil = shelves[-1][2]
             if ceil + sizey > Y:
                 return False
-
             case.x, case.y = 0, ceil
             shelves.append([case.right, ceil, case.top])
 
@@ -182,37 +210,43 @@ def SBWF (cases, layersize):
 @functools.lru_cache(maxsize=cachesize)
 def SWWF (cases, layersize):
     """
-    *Shelf Worst Width Fit*
+                        * Shelf Worst Width Fit *
 
     Equal to the Shelf Best Width Fit, but the shelves where the remaining width
     is maximised are prioritized.
 
     """
     X, Y = layersize
-    shelves = [[0,0,0],]  # (lastx, floor, ceil) for each shelf
+    shelves = [[0,0,0],]  # (lastx, floor, ceil) For each shelf
     for case in cases:
         sizex, sizey = case.sizex, case.sizey
 
         if shelves[0][2] == 0:
+            # Define the first shelf which does not exists yet.
+            if sizey > Y:
+                return False
             shelves[0][2] = sizey
             case.x, case.y = 0, 0
             shelves[0][0] = case.right
             continue
-
+        # Sort feasible shelves accrding to the logic defined.
         options = sorted([s for s in shelves if sizey + s[1] <= s[2] and s[0] + sizex <= X],
                          key=lambda s: X - (s[0] + sizex),
                          reverse=True)
+        
         if len(options) > 0:
+            # If there is a feasible shelf, place the item in it.
             lastx, floor, _ = options[0]
             case.x, case.y = lastx, floor
             options[0][0] = case.right
         else:
+            # If no shelf is feasible open a new shelf.
             ceil = shelves[-1][2]
             if ceil + sizey > Y:
                 return False
-
             case.x, case.y = 0, ceil
             shelves.append([case.right, ceil, case.top])
+            
     return True
 
 
@@ -221,18 +255,18 @@ def SWWF (cases, layersize):
 @functools.lru_cache(maxsize=cachesize)
 def GBAF (cases, layersize, splitting="shorteraxis"):
     """
-    *Guilliotine Best Area Fit*
+                            * Guilliotine Best Area Fit *
 
     This algorithm keeps track of all the empty spaces still available. Every time
     a new case is placed in one of these spaces, it is replaced with two new spaces
     breaking down the L-shaped space into two smaller rectangles.
 
-       Vertical Cutting            Horizontal Cutting
-     ____________________         ____________________
-    |    |               |       |                    |
-    |____|               |       |____________________|
-    |####|               |       |####|               |
-    |####|_______________|       |####|_______________|
+                     Vertical Cutting            Horizontal Cutting
+                   ____________________         ____________________
+                  |    |               |       |                    |
+                  |____|               |       |____________________|
+                  |####|               |       |####|               |
+                  |####|_______________|       |####|_______________|
 
 
     In this particular case of "best area fit", priority is given to the
@@ -265,28 +299,28 @@ def GBAF (cases, layersize, splitting="shorteraxis"):
                 if splitting == "shorteraxis":
                     if sizex < sizey:
                         F.extend([(case.right, y, sizex - case.sizex, case.sizey), 
-                                  (x, case.top, sizex, sizey - case.sizey)])  # Horizontal cutting
+                                  (x, case.top, sizex, sizey - case.sizey)])       # Horizontal cutting
                     else:
                         F.extend([(case.right, y, sizex - case.sizex, sizey), 
                                   (x, case.top, case.sizex, sizey - case.sizey)])  # Vertical cutting
                 elif splitting == "longeraxis":
                     if sizex > sizey:
                         F.extend([(case.right, y, sizex - case.sizex, case.sizey), 
-                                  (x, case.top, sizex, sizey - case.sizey)])  # Horizontal cutting
+                                  (x, case.top, sizex, sizey - case.sizey)])       # Horizontal cutting
                     else:
                         F.extend([(case.right, y, sizex - case.sizex, sizey), 
                                   (x, case.top, case.sizex, sizey - case.sizey)])  # Vertical cutting
                 elif splitting == "shorterleftover":
                     if sizex - case.sizex < sizey - case.sizey:
                         F.extend([(case.right, y, sizex - case.sizex, case.sizey), 
-                                  (x, case.top, sizex, sizey - case.sizey)])  # Horizontal cutting
+                                  (x, case.top, sizex, sizey - case.sizey)])       # Horizontal cutting
                     else:
                         F.extend([(case.right, y, sizex - case.sizex, sizey), 
                                   (x, case.top, case.sizex, sizey - case.sizey)])  # Vertical cutting
                 elif splitting == "longerleftover":
                     if sizex - case.sizex > sizey - case.sizey:
                         F.extend([(case.right, y, sizex - case.sizex, case.sizey), 
-                                  (x, case.top, sizex, sizey - case.sizey)])  # Horizontal cutting
+                                  (x, case.top, sizex, sizey - case.sizey)])       # Horizontal cutting
                     else:
                         F.extend([(case.right, y, sizex - case.sizex, sizey), 
                                   (x, case.top, case.sizex, sizey - case.sizey)])  # Vertical cutting
