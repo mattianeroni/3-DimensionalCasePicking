@@ -9,4 +9,4 @@ class Layer (object):
 
     @property
     def size (self):
-        return self.sizex, slef.sizey
+        return self.sizex, self.sizey
