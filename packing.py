@@ -295,14 +295,20 @@ def GBAF (cases, layersize, splitting="shorteraxis"):
             # If it fits place the item and remove the space from the set of spaces.
             case.x, case.y = x, y
             F.pop(i)
-
+            
+            # Define the cutting
             if (sizex, sizey) == (case.sizex, case.sizey):
+                # No cut needed
                 pass
             elif sizey == case.sizey:
+                # Just horizontal cut possible
                 F.append((case.right, y, sizex - case.sizex, sizey))
             elif sizex == case.sizex:
+                # Just vertical cut possible
                 F.append((x, case.top, sizex, sizey - case.sizey))
             else:
+                # Define if cutting horizontally or vertically depending on the cutting
+                # policy.
                 if splitting == "shorteraxis":
                     if sizex < sizey:
                         F.extend([(case.right, y, sizex - case.sizex, case.sizey), 
@@ -336,6 +342,7 @@ def GBAF (cases, layersize, splitting="shorteraxis"):
 
             break
         else:
+            # If no space is feasible the packing is not possible.
             return False
 
     return True
