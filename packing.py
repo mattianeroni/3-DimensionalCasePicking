@@ -443,15 +443,6 @@ def _contains (container, contained):
     return False
 
 
-
-def _equal (ispace, jspace):
-    x1, y1, sizex1, sizey1 = ispace
-    x2, y2, sizex2, sizey2 = jspace
-    if x1 == x2 and y1 == y2 and sizex1 == sizex2 and sizey1 == sizey2:
-        return True
-    return False
-
-
 def _split (space, overlap):
     x1, y1, sizex1, sizey1 = space
     x2, y2, sizex2, sizey2 = overlap
@@ -519,7 +510,7 @@ def MRBL (cases, layersize):
         for i, j in itertools.combinations(F, 2):
             if _contains(i, j):
                 to_remove.add(j)
-            if _contains(j, i) and not _equal(i, j):
+            if _contains(j, i) and i != j:
                 to_remove.add(i)
         F = list(set(F) - to_remove)
 
