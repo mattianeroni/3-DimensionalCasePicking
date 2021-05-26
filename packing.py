@@ -301,10 +301,10 @@ def GBAF (cases, layersize, splitting="shorteraxis"):
                 # No cut needed
                 pass
             elif sizey == case.sizey:
-                # Just horizontal cut possible
+                # Just vertical cut possible
                 F.append((case.right, y, sizex - case.sizex, sizey))
             elif sizex == case.sizex:
-                # Just vertical cut possible
+                # Just horizontal cut possible
                 F.append((x, case.top, sizex, sizey - case.sizey))
             else:
                 # Define if cutting horizontally or vertically depending on the cutting
@@ -352,41 +352,49 @@ def GBAF (cases, layersize, splitting="shorteraxis"):
 @functools.lru_cache(maxsize=cachesize)
 def GWAF (cases, layersize, splitting="shorteraxis"):
     """
-    *Guilliotine Worst Area Fit*
+                              * Guilliotine Worst Area Fit *
 
     Very similar to the Guilliotine Best Area Fit, however, in this case, is
     given priority to the bigger spaces. Most of the times it should provide a
     worst solution, but there are some lucky situations and this approach is
-    computationally faster.
+    computationally faster, since the feasible space is generally found during
+    the first tries.
 
     """
     X, Y = layersize
     F = [(0, 0, X, Y), ]  # (x, y, sizex, sizey) For each rectangle
 
     for case in cases:
+        # Sort spaces prioritizing the biggest ones.
         F.sort(key=lambda s: s[2] * s[3], reverse=True)
         for i in range(len(F)):
-            space = F[i]
-            x, y, sizex, sizey = space
-
+            x, y, sizex, sizey = F[i]
+            # Preliminar control on the area.
+            # If the current space is not big enough, none of the next spaces
+            # will be big enough.
             if sizex * sizey < case.sizex * case.sizey:
                 return False
-
+            
+            # Eventually try to rotate the case.
             if sizex < case.sizex or sizey < case.sizey:
                 case.rotate()
                 if sizex < case.sizex or sizey < case.sizey:
                     continue
-
+            # Place the case in the right space
             case.x, case.y = x, y
             F.pop(i)
-
+            # Define the cuttting method.
             if (sizex, sizey) == (case.sizex, case.sizey):
+                # No cut needed.
                 pass
             elif sizey == case.sizey:
+                # Only vertical cut needed.
                 F.append((case.right, y, sizex - case.sizex, sizey))
             elif sizex == case.sizex:
+                # Only horizontal cut needed.
                 F.append((x, case.top, sizex, sizey - case.sizey))
             else:
+                # Choose between vertical or horizontal cut depending on the cutting policy.
                 if splitting == "shorteraxis":
                     if sizex < sizey:
                         F.extend([(case.right, y, sizex - case.sizex, case.sizey), 
@@ -420,6 +428,7 @@ def GWAF (cases, layersize, splitting="shorteraxis"):
 
             break
         else:
+            # If none of the spaces is feasible the packing is not possible.
             return False
 
     return True
