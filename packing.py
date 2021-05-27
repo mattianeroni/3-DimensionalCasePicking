@@ -436,6 +436,17 @@ def GWAF (cases, layersize, splitting="shorteraxis"):
 
 
 def _contains (container, contained):
+    """
+    This is a private method used only by the Maximal Rectangle algorithms that follow.
+    
+    Given two spaces, it checks if one of them contains the other. In this way, the 
+    contained space can be removed.
+    
+    :param container: The space that is supposed to contain the other.
+    :param contained: The space that is contained
+    :return: True if the second space is contained, False otherwise.
+    
+    """
     x1, y1, sizex1, sizey1 = container
     x2, y2, sizex2, sizey2 = contained
     if x1 <= x2 and y1 <= y2 and x1 + sizex1 >= x2 + sizex2 and y1 + sizey1 >= y2 + sizey2:
@@ -444,6 +455,17 @@ def _contains (container, contained):
 
 
 def _split (space, overlap):
+    """
+    This is a private method used only by the Maximal Rectangle algorithms that follow.
+    
+    Given an overlap resulting from a newly placed case and a space, this method
+    split the space in maximum 4 other spaces all around the overlap.
+    
+    :param space: The space
+    :param overlap: The overlap
+    :return: The list of new spaces that will replace the original one.
+    
+    """
     x1, y1, sizex1, sizey1 = space
     x2, y2, sizex2, sizey2 = overlap
     newspaces = [None, None, None, None]
@@ -459,6 +481,17 @@ def _split (space, overlap):
 
 
 def _overlap (case, space):
+    """
+    This is a private method used only by the Maximal Rectangle algorithms that follow.
+    
+    Given a case and a space, it controls if the case partially overlap with the space.
+    If this happens, the overlap is returned.
+    
+    :param case: The case
+    :param space: The space
+    :return: The overlap (if exists)
+    
+    """
     x, y, sizex, sizey = space
     right = min(case.x + case.sizex, x + sizex)
     left = max(case.x, x)
@@ -472,7 +505,7 @@ def _overlap (case, space):
 @functools.lru_cache(maxsize=cachesize)
 def MRBL (cases, layersize):
     """
-    * Maximal Rectangles Bottom Left *
+                              * Maximal Rectangles Bottom Left *
     
     Similar to the guilliotine, but every time a new case is placed, no cut is made, both
     newly generated spaces are kept in memory. This introduce the necessity to make some 
@@ -486,26 +519,30 @@ def MRBL (cases, layersize):
     X, Y = layersize
     F = [(0, 0, X, Y), ]  # (x, y, sizex, sizey) For each rectangle
     for case in cases:
+        # Sort spaces by bottom-left
         F.sort(key=lambda i: (i[0], i[1]))
         for x, y, sizex, sizey in F:
+            # Preliminar control on area
             if sizex * sizey < case.sizex * case.sizey:
                 continue
-
+            # Eventually rotate the case
             if sizex < case.sizex or sizey < case.sizey:
                 case.rotate()
                 if sizex < case.sizex or sizey < case.sizey:
                     continue
-
+            # Place the case
             case.x, case.y = x, y
             break
         else:
+            # If no feasible space is found, the packing is unfeasible.
             return False
         
+        # Controls eventual overlaps
         for space in tuple(F):
             if (over := _overlap(case, space)) is not None:
                 F.remove(space)
                 F.extend(_split(space, over))
-
+        # Remove spaces already contained in others.
         to_remove = set()
         for i, j in itertools.combinations(F, 2):
             if _contains(i, j):
