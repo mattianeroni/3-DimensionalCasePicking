@@ -1,6 +1,12 @@
 """
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
+This file contains the implementation of a warehouse for picking.
+Once defined the warehouse characteristics, the graph of possible paths (i.e., G) is instantiated
+and the matrix of minimum distances (i.e., distance_matrix) is calculated using Floyd-Warshall
+algorithm.
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 """
 import networkx as nx
 import networkx.algorithms.shortest_paths.dense as nxalg
