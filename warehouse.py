@@ -3,8 +3,8 @@
 
 """
 import networkx as nx
-import matplotlib.pyplot as plt
 import networkx.algorithms.shortest_paths.dense as nxalg
+#import matplotlib.pyplot as plt
 
 # Warehouse characteristics
 LOCATION_X = 1
