@@ -6,6 +6,7 @@ Once defined the warehouse characteristics, the graph of possible paths (i.e., G
 and the matrix of minimum distances (i.e., distance_matrix) is calculated using Floyd-Warshall
 algorithm.
 
+Author: Mattia Neroni, Ph.D., Eng. (May 2021).
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 """
 import networkx as nx
