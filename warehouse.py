@@ -54,7 +54,7 @@ for x in range(AISLES):
     current_pos[0] += LOCATION_X*2
 
 # Plot the graph
-#nx.draw(G, pos=nodes, with_labels=True, font_weight='bold')
+#nx.draw(G, pos=pos, with_labels=True, font_weight='bold')
 #plt.show()
 
 # Set the distance matrix
