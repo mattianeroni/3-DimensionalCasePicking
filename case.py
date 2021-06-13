@@ -10,7 +10,7 @@ Author: Mattia Neroni, Ph.D., Eng. (May 2021).
 """
 
 class OrderLine (object):
-    
+
     def __init__(selfself, code, cases, location):
         self.code = code
         self.cases = cases
@@ -19,10 +19,13 @@ class OrderLine (object):
         self.dn_edge = None
 
 
-
 def rotate (case):
     case.sizex, case.sizey = case.sizey, case.sizex
     case.rotated = not case.rotated
+
+
+def froze (case):
+    case.assigned_position = case.position
 
 
 class Case (object):
@@ -34,17 +37,23 @@ class Case (object):
         self.sizez = sizez
         self.weight = weight
         self.strength = strength
-        self.rotated = False
 
-    def rotate (self):
-        self.sizex, self.sizey = self.sizey, self.sizex
-        self.rotated = not self.rotated
+        self.rotated = False
+        self.pallet = None
+        self.assigned_position = None
 
     def __hash__(self):
         return hash(str(self))
 
     def __repr__(self):
         return f"Case(x={self.x}, y={self.y}, z={self.z}, sizex={self.sizex}, sizey={self.sizey}, sizez={self.sizez}, weight={self.weight})"
+
+    def rotate(self):
+        self.sizex, self.sizey = self.sizey, self.sizex
+        self.rotated = not self.rotated
+
+    def froze(self):
+        self.assigned_position = self.position
 
     @property
     def back(self):
