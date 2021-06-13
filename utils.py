@@ -8,8 +8,9 @@ def read_problem (filename, delimiter=";"):
     for _, line in df.iterrows():
         orderlines.append(
             case.OrderLine(code=line["Code"], 
-                           cases=tuple(case.Case(0,0,line["SizeX"],line["SizeY"],line["Height"],line["Weight"])
-                                       for _ in range(line["#Cases"]))
+                           cases=tuple(case.Case(line["SizeX"],line["SizeY"],line["SizeZ"],line["Weight"],line["Strength"])
+                                       for _ in range(line["#Cases"])),
+                           location=line["Location"]
             )
         )
     return orderlines
