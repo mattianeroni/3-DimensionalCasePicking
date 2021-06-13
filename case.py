@@ -26,6 +26,7 @@ def rotate (case):
 
 def froze (case):
     case.assigned_position = case.position
+    case.assigned_rotation = case.rotated
 
 
 class Case (object):
@@ -41,6 +42,7 @@ class Case (object):
         self.rotated = False
         self.pallet = None
         self.assigned_position = None
+        self.assigned_rotation = None
 
     def __hash__(self):
         return hash(str(self))
@@ -54,6 +56,7 @@ class Case (object):
 
     def froze(self):
         self.assigned_position = self.position
+        self.assigned_rotation = self.rotated
 
     @property
     def back(self):
