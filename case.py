@@ -8,11 +8,16 @@ Author: Mattia Neroni, Ph.D., Eng. (May 2021).
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 """
-import collections
 
+class OrderLine (object):
+    
+    def __init__(selfself, code, cases, location):
+        self.code = code
+        self.cases = cases
+        self.location = location
+        self.nd_edge = None
+        self.dn_edge = None
 
-# The order line class
-OrderLine = collections.namedtuple("OrderLine", "code cases location")
 
 
 def rotate (case):
