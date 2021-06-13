@@ -43,6 +43,8 @@ class Case (object):
         self.pallet = None
         self.assigned_position = None
         self.assigned_rotation = None
+        self.layer = 0
+        
 
     def __hash__(self):
         return hash(str(self))
