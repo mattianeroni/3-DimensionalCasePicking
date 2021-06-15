@@ -9,14 +9,6 @@ import (
 )
 
 
-type P struct {
-	x int
-}
-
-func increase (p *P){
-	p.x++
-}
-
 func main () {
 
 	readfile("./test/testproblem.csv",';')
