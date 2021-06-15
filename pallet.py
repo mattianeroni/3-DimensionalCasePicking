@@ -6,12 +6,15 @@ This file contains the pallet class.
 Author: Mattia Neroni, Ph.D., Eng. (May 2021).
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 """
+import collections
+
 
 # Pallet size in centimetres
 PALLET_SIZE = (120, 80, 100)
 
+
 class Pallet (object):
     def __init__(self):
         self.size = PALLET_SIZE
-        self.cases = list()
+        self.cases = collections.deque()
         self.spaces = list()    # Used by some packing algorithms
