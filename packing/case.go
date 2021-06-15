@@ -21,6 +21,12 @@ func rotate (c *Case){
 }
 
 
+// Set the position more quickly along all axis
+func setPos (c *Case, pos Position){
+	c.X, c.Y, c.Z = pos[0], pos[1], pos[2]
+}
+
+
 // Interenting positions needed during the packing
 func (self *Case) Front() int {return self.Y}
 func (self *Case) Back() int {return self.Y + self.SizeY}
