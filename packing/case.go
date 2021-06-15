@@ -8,6 +8,7 @@ package packing
 type Case struct {
 	X, Y, Z int
 	SizeX, SizeY, SizeZ int
+	Weight, Strength int
 	Rotated bool
 }
 
