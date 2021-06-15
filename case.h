@@ -1,5 +1,5 @@
-#ifndef INC_3DCASEPICKING_CASE_H
-#define INC_3DCASEPICKING_CASE_H
+#ifndef CASE_H
+#define CASE_H
 
 
 class Case {
