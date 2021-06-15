@@ -9,16 +9,6 @@ Author: Mattia Neroni, Ph.D., Eng. (May 2021).
 
 """
 
-class OrderLine (object):
-
-    def __init__(selfself, code, cases, location):
-        self.code = code
-        self.cases = cases
-        self.location = location
-        self.nd_edge = None
-        self.dn_edge = None
-
-
 def rotate (case):
     case.sizex, case.sizey = case.sizey, case.sizex
     case.rotated = not case.rotated
