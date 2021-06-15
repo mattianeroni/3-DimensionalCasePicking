@@ -27,7 +27,7 @@ func setPos (c *Case, pos Position){
 }
 
 
-// Interenting positions needed during the packing
+// Interesting positions needed during the packing
 func (self *Case) Front() int {return self.Y}
 func (self *Case) Back() int {return self.Y + self.SizeY}
 
