@@ -12,6 +12,6 @@ type OrderLine struct {
 
 
 // Constructor
-func NewOrderLine (code byte, location int, cases []Case) OrderLine {
-	return OrderLine{code, location, cases, nil, nil}
-}
+//func NewOrderLine (code byte, location int, cases []Case) OrderLine {
+//	return OrderLine{code, location, cases, nil, nil}
+//}

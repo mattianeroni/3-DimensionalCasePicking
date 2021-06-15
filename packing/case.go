@@ -10,6 +10,8 @@ type Case struct {
 	SizeX, SizeY, SizeZ int
 	Weight, Strength int
 	Rotated bool
+	Pallet *Pallet
+	Layer int
 }
 
 // Rotate a case in place
