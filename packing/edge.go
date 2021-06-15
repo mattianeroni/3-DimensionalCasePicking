@@ -6,4 +6,5 @@ type Edge struct {
 	Destination OrderLine
 	Cost int
 	Saving int
+	Inverse *Edge
 }
