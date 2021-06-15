@@ -9,10 +9,9 @@ import (
 )
 
 
-
-
 func main () {
-	readfile("./test/testproblem.csv",';')
+	orderlines := readfile("./test/testproblem.csv",';')
+	writefile("./test/results.csv", orderlines[0].Cases)
 }
 
 
@@ -65,4 +64,23 @@ func readfile (filename string, delimiter rune) []packing.OrderLine {
 	}
 
 	return orderlines
+}
+
+
+
+
+func writefile(filename string, cases []packing.Case) {
+	f, err := os.Create(filename)
+	if err != nil {
+		panic(err)
+	}
+	defer f.Close()
+
+	w := bufio.NewWriter(f)
+	defer w.Flush()
+	w.WriteString("X,Y,Z,SizeX,SizeY,SizeZ\n")
+	for _, item := range cases {
+		w.WriteString(fmt.Sprintf("%d,%d,%d,%d,%d,%d\n", item.X, item.Y, item.Z, item.SizeX, item.SizeY, item.SizeZ))
+	}
+
 }
