@@ -9,8 +9,9 @@ import (
 )
 
 
-func main () {
 
+
+func main () {
 	readfile("./test/testproblem.csv",';')
 }
 
@@ -59,8 +60,7 @@ func readfile (filename string, delimiter rune) []packing.OrderLine {
 					Rotated : false}
 			}
 
-			orderlines = append(orderlines, packing.NewOrderLine(byte(code), int(location), cases))
-			//fmt.Println(line)
+			orderlines = append(orderlines, packing.OrderLine{Code: byte(code), Location: int(location), Cases:cases})
 		}
 	}
 
