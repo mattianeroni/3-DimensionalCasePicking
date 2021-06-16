@@ -2,6 +2,7 @@ package main
 
 import (
 	"3DCasePicking/packing"
+	"bufio"
 	"encoding/csv"
 	"fmt"
 	"os"
@@ -9,9 +10,23 @@ import (
 )
 
 
+func change (a []int){
+	a[0] = 32
+}
+
+
 func main () {
 	orderlines := readfile("./test/testproblem.csv",';')
-	writefile("./test/results.csv", orderlines[0].Cases)
+	cases := make([]packing.Case, 0)
+	pallet := packing.Pallet{X: 120, Y: 80, Z: 100, MaxWeight: 1000}
+
+	for _, or := range orderlines[:5] {
+		cases = append(cases, or.Cases...)
+	}
+
+	packedCases, done := packing.DubePacker(&pallet, cases)
+	fmt.Println(done)
+	writefile("./test/results.csv", packedCases)
 }
 
 
@@ -34,7 +49,7 @@ func readfile (filename string, delimiter rune) []packing.OrderLine {
 	}
 
 	for i, line := range lines {
-		fmt.Println(line)
+		//fmt.Println(line)
 		if i > 0 {
 			code, _ := strconv.ParseInt(line[1],10,64)
 			ncases, _ := strconv.ParseInt(line[2],10,64)
@@ -62,7 +77,6 @@ func readfile (filename string, delimiter rune) []packing.OrderLine {
 			orderlines = append(orderlines, packing.OrderLine{Code: byte(code), Location: int(location), Cases:cases})
 		}
 	}
-
 	return orderlines
 }
 
