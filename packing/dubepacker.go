@@ -1,6 +1,9 @@
 package packing
 
-import "sort"
+import (
+	"math"
+	"sort"
+)
 
 // Position and Size of a case seen as arrays
 type Position [3]int
@@ -25,6 +28,17 @@ func getPosition (index int, item Case) Position {
 }
 
 
+// This method checks the intersection between two cases.
+func intersect (iCase, jCase Case) bool {
+	if math.Min(float64(iCase.Right()), float64(jCase.Right())) > math.Max(float64(iCase.Left()), float64(jCase.Left())) &&
+	   math.Min(float64(iCase.Back()), float64(jCase.Back())) > math.Max(float64(iCase.Front()), float64(jCase.Front())) &&
+	   math.Min(float64(iCase.Bottom()), float64(jCase.Bottom())) > math.Max(float64(iCase.Top()), float64(jCase.Top())) {
+		return true
+	}
+	return false
+}
+
+
 // This method verifies if it is possible to place the currentItem in a given position.
 // The method needs to iterate all the list of already packed items to avoid overlaps
 // or intersections.
@@ -36,9 +50,12 @@ func fit (currentItem Case, pallet *Pallet, pos Position, packed []Case) bool {
 		return false
 	}
 
-
-
-
+	for _, packedItem := range packed {
+		// Check intersection with other already placed cases
+		if intersect(currentItem, packedItem) == true {
+			return false
+		}
+	}
 	return true
 }
 
@@ -99,6 +116,8 @@ func DubePacker (pallet *Pallet, cases []Case) ([]Case, bool){
 					toPack = false
 					break
 				}
+				// Readjust the item
+				rotate(&currentItem)
 			}
 			// If already packed we don't need to try other positions.
 			if toPack == false { break }
@@ -109,5 +128,5 @@ func DubePacker (pallet *Pallet, cases []Case) ([]Case, bool){
 		// If currentItem has been packed add it to the list of packed
 		packed = append(packed, currentItem)
 	}
-	return cases, true
+	return packed, true
 }
