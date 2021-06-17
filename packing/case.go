@@ -34,5 +34,5 @@ func (self *Case) Back() int {return self.Y + self.SizeY}
 func (self *Case) Left() int {return self.X}
 func (self *Case) Right() int {return self.X + self.SizeX}
 
-func (self *Case) Top() int {return self.Z}
-func (self *Case) Bottom() int {return self.Z + self.SizeZ}
+func (self *Case) Top() int {return self.Z + self.SizeZ}
+func (self *Case) Bottom() int {return self.Z }
