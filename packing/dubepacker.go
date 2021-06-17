@@ -32,7 +32,7 @@ func getPosition (index int, item Case) Position {
 func intersect (iCase, jCase Case) bool {
 	if math.Min(float64(iCase.Right()), float64(jCase.Right())) > math.Max(float64(iCase.Left()), float64(jCase.Left())) &&
 	   math.Min(float64(iCase.Back()), float64(jCase.Back())) > math.Max(float64(iCase.Front()), float64(jCase.Front())) &&
-	   math.Min(float64(iCase.Bottom()), float64(jCase.Bottom())) > math.Max(float64(iCase.Top()), float64(jCase.Top())) {
+	   math.Min(float64(iCase.Top()), float64(jCase.Top())) > math.Max(float64(iCase.Bottom()), float64(jCase.Bottom())) {
 		return true
 	}
 	return false
