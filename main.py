@@ -1,8 +1,6 @@
 import utils
-import copy
-import time
 
-import dubepacker
+import packing
 from pallet import Pallet
 
 if __name__ == "__main__":
@@ -13,7 +11,7 @@ if __name__ == "__main__":
 	pallet = Pallet()
 
 
-	done = dubepacker.dubePacker(pallet, cases)
+	done = packing.dubePacker(pallet, cases)
 
 	print(done)
 	pallet.cases = cases
