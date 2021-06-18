@@ -10,9 +10,9 @@ if __name__ == "__main__":
 		cases.extend(o.cases)
 	pallet = Pallet()
 
-
+	#print(cases)
 	done = packing.dubePacker(pallet, cases)
-
+	#print(cases)
 	print(done)
 	pallet.cases = cases
 	utils.plot(pallet)

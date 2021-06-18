@@ -31,7 +31,7 @@ class Case (object):
         return str(hash(self))
 
     def __repr__(self):
-        return f"Case(position={self.position}, size=({self.sizex}, {self.sizey}, {self.sizez}))"
+        return f"Case(position={self.position}, size=({self.sizex}, {self.sizey}, {self.sizez}), rotated={self.rotated}, level={self.level})"
 
     def __copy__(self):
         cls = self.__class__
@@ -47,25 +47,25 @@ class Case (object):
         self.frozen = dict(self.__dict__)
 
     @property
-    def top (self):
+    def top (self) -> int:
         return self.position[2] + self.sizez
 
     @property
-    def bottom (self):
+    def bottom (self) -> int:
         return self.position[2]
 
     @property
-    def left (self):
+    def left (self) -> int:
         return self.position[0]
 
     @property
-    def right (self):
+    def right (self) -> int:
         return self.position[0] + self.sizex
 
     @property
-    def front (self):
+    def front (self) -> int:
         return self.position[1]
 
     @property
-    def back (self):
+    def back (self) -> int:
         return self.position[1] + self.sizey
