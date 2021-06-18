@@ -2,7 +2,7 @@ import utils
 import copy
 import time
 
-import packer
+import dubepacker
 from pallet import Pallet
 
 if __name__ == "__main__":
@@ -12,10 +12,9 @@ if __name__ == "__main__":
 		cases.extend(o.cases)
 	pallet = Pallet()
 
-	start = time.time()
-	done = packer.dubePacker(pallet, cases)
-	print(time.time() - start)
-	#print(len(cases))
+
+	done = dubepacker.dubePacker(pallet, cases)
+
 	print(done)
 	pallet.cases = cases
 	utils.plot(pallet)
