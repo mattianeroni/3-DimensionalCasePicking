@@ -13,15 +13,15 @@ class Case (object):
 
     def __init__ (self, sizex, sizey, sizez, weight, strength, rotated=False):
         self.position = (0,0,0)
+        self.rotated = False
         self.sizex = sizex
         self.sizey = sizey
         self.sizez = sizez
         self.weight = weight
         self.strength = strength
 
-        self.rotated = False
+        self.canHold = strength
         self.level = 0
-        self.can_keep = strength
         self.pallet = None
 
         self.frozen = None
