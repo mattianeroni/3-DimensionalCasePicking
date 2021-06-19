@@ -11,6 +11,22 @@ type Size [3]int
 
 
 
+// Initialize the parameters of the algorithm
+// The minimum supporting surface to make the packing feasible
+// The minimum number of stable corners to make the packing feasible
+const MIN_STABLE_SURFACE float64 = 0.7
+const MIN_STABLE_CORNERS int = 3
+
+
+
+// Sum elements in an array
+func sumArray(arr... int) int {
+	var res int = 0
+	for _, i := range(arr){res += i}
+	return res
+}
+
+
 // Given an index and the already packed case around which
 // we are supposed to try a placement, this method returns
 // the corresponding position.
@@ -43,20 +59,68 @@ func intersect (iCase, jCase Case) bool {
 // The method needs to iterate all the list of already packed items to avoid overlaps
 // or intersections.
 // It also verifies the stability of cases, the vertical support, and the strength constraint.
-func fit (currentItem Case, pallet *Pallet, pos Position, packed []Case) bool {
+func fit (currentItem Case, pallet *Pallet, packed []Case) bool {
 	// Check the pallet borders
 	X, Y, Z := pallet.Size()
 	if currentItem.Right() > X || currentItem.Back() > Y || currentItem.Top() > Z {
 		return false
 	}
+	// Initialize the stable surface and the stable corners of the currentItem
+	// In a feasible packing, a case must have 3 out of 4 corners, or,
+	// alternatively, the 70% of its surface lying on a case underneath.
+	var stableSurface float64 = 0
+	var stableCorners = []int{0,0,0,0}  // To use as boolean
+	itemSurface := float64(currentItem.SizeX * currentItem.SizeY)
+
+	// Identify the corners that need to be supported
+	var footholds = [4]Position{
+		{currentItem.X, currentItem.Y, currentItem.Z},
+		{currentItem.Left(), currentItem.Back(), currentItem.Z},
+		{currentItem.Right(), currentItem.Back(), currentItem.Z},
+		{currentItem.Right(), currentItem.Front(), currentItem.Z}}
+
 
 	for _, packedItem := range packed {
 		// Check intersection with other already placed cases
 		if intersect(currentItem, packedItem) == true {
 			return false
 		}
+
+		// Check if the currentItem has physical support
+		if currentItem.Z == 0 {
+			// If the currentItem is on the floor and has no intersections
+			// the placement is feasible.
+			stableSurface = itemSurface
+			stableCorners = []int{1,1,1,1}
+		} else if currentItem.Z == packedItem.Top() {
+			// Update the supported surface.
+			x1 := math.Min(float64(currentItem.Right()), float64(packedItem.Right()))
+			x2 := math.Max(float64(currentItem.Left()), float64(packedItem.Left()))
+			y1 := math.Min(float64(currentItem.Back()), float64(packedItem.Back()))
+			y2 := math.Max(float64(currentItem.Front()), float64(packedItem.Front()))
+			if x1 > x2 && y1 > y2 {
+				stableSurface += (x1 - x2) * (y1 - y2)
+			}
+
+			// Verify if the vertical support in the corners is provided.
+			for idx, point := range footholds{
+				if stableCorners[idx] == 0 && x2 <= float64(point[0]) && float64(point[0]) <= x1 && y2 <= float64(point[1]) && float64(point[1]) <= y1{
+					stableCorners[idx] = 1
+				}
+			}
+		}
 	}
-	return true
+	// If one of the stability conditions is met, returns a positive response.
+	// The control is made after all the loop because the loop is needed to check
+	// eventual intersections too.
+	if stableSurface / itemSurface > MIN_STABLE_SURFACE || sumArray(stableCorners...) >= MIN_STABLE_CORNERS{
+		return true
+	}
+
+	// Arrived at this point, a positive response should have been returned.
+	// If it is not, it mean that there is no intersection between currentItem
+	// and the packed cases, but the vertical support is not provided.
+	return false
 }
 
 
@@ -106,13 +170,13 @@ func DubePacker (pallet *Pallet, cases []Case) ([]Case, bool){
 				// Try with the position
 				pos := getPosition(posIndex, packedItem)
 				setPos(&currentItem, pos)
-				if fit(currentItem, pallet, pos, packed) == true {
+				if fit(currentItem, pallet, packed) == true {
 					toPack = false
 					break
 				}
 				// Eventually try same position rotating the case
 				rotate(&currentItem)
-				if fit(currentItem, pallet, pos, packed) == true {
+				if fit(currentItem, pallet, packed) == true {
 					toPack = false
 					break
 				}
