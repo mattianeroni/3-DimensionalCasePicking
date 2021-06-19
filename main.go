@@ -11,11 +11,6 @@ import (
 )
 
 
-func change (a []int){
-	a[0] = 32
-}
-
-
 func main () {
 	orderlines := readfile("./test/testproblem.csv",';')
 	cases := make([]packing.Case, 0)
