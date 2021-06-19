@@ -19,7 +19,7 @@ func change (a []int){
 func main () {
 	orderlines := readfile("./test/testproblem.csv",';')
 	cases := make([]packing.Case, 0)
-	pallet := packing.Pallet{X: 120000, Y: 80000, Z: 100000, MaxWeight: 1000}
+	pallet := packing.Pallet{X: 120, Y: 80, Z: 100, MaxWeight: 1000}
 
 	for _, or := range orderlines[:5] {
 		cases = append(cases, or.Cases...)
