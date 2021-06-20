@@ -12,7 +12,6 @@ def froze(case):
 class Case (object):
 
     def __init__ (self, sizex, sizey, sizez, weight, strength, rotated=False):
-        #self.position = (0,0,0)
         self.x = 0
         self.y = 0
         self.z = 0
@@ -57,25 +56,25 @@ class Case (object):
         self.x, self.y, self.z = pos
 
     @property
-    def top (self) -> int:
+    def top (self):
         return self.z + self.sizez
 
     @property
-    def bottom (self) -> int:
+    def bottom (self):
         return self.z
 
     @property
-    def left (self) -> int:
+    def left (self):
         return self.x
 
     @property
-    def right (self) -> int:
+    def right (self):
         return self.x + self.sizex
 
     @property
-    def front (self) -> int:
+    def front (self):
         return self.y
 
     @property
-    def back (self) -> int:
+    def back (self):
         return self.y + self.sizey
