@@ -1,6 +1,6 @@
 import collections
 
-PALLET_SIZE = (200, 150, 100)#(120, 80, 100)
+PALLET_SIZE = (120, 80, 100)
 
 
 class Pallet (object):
