@@ -22,7 +22,7 @@ const MIN_STABLE_CORNERS int = 3
 // Sum elements in an array
 func sumArray(arr... int) int {
 	var res int = 0
-	for _, i := range(arr){res += i}
+	for _, i := range arr {res += i}
 	return res
 }
 
