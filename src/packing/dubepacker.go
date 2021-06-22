@@ -70,6 +70,7 @@ func fit (currentItem Case, pallet *Pallet, packed []Case) bool {
 	// alternatively, the 70% of its surface lying on a case underneath.
 	var stableSurface float64 = 0
 	var stableCorners = []int{0,0,0,0}  // To use as boolean
+	var stable bool = false
 	itemSurface := float64(currentItem.SizeX * currentItem.SizeY)
 
 	// Identify the corners that need to be supported
@@ -85,38 +86,42 @@ func fit (currentItem Case, pallet *Pallet, packed []Case) bool {
 		if intersect(currentItem, packedItem) == true {
 			return false
 		}
-
-		// Check if the currentItem has physical support
-		if currentItem.Z == 0 {
-			// If the currentItem is on the floor and has no intersections
-			// the placement is feasible.
-			stableSurface = itemSurface
-			stableCorners = []int{1,1,1,1}
-		} else if currentItem.Z == packedItem.Top() {
-			// Update the supported surface.
-			x1 := math.Min(float64(currentItem.Right()), float64(packedItem.Right()))
-			x2 := math.Max(float64(currentItem.Left()), float64(packedItem.Left()))
-			y1 := math.Min(float64(currentItem.Back()), float64(packedItem.Back()))
-			y2 := math.Max(float64(currentItem.Front()), float64(packedItem.Front()))
-			if x1 > x2 && y1 > y2 {
-				stableSurface += (x1 - x2) * (y1 - y2)
-			}
-
-			// Verify if the vertical support in the corners is provided.
-			for idx, point := range footholds{
-				if stableCorners[idx] == 0 && x2 <= float64(point[0]) && float64(point[0]) <= x1 && y2 <= float64(point[1]) && float64(point[1]) <= y1{
-					stableCorners[idx] = 1
+		if !stable {
+			// Check if the currentItem has physical support
+			if currentItem.Z == 0 {
+				// If the currentItem is on the floor and has no intersections
+				// the placement is feasible.
+				stableSurface = itemSurface
+				stableCorners = []int{1, 1, 1, 1}
+			} else if currentItem.Z == packedItem.Top() {
+				// Update the supported surface.
+				x1 := math.Min(float64(currentItem.Right()), float64(packedItem.Right()))
+				x2 := math.Max(float64(currentItem.Left()), float64(packedItem.Left()))
+				y1 := math.Min(float64(currentItem.Back()), float64(packedItem.Back()))
+				y2 := math.Max(float64(currentItem.Front()), float64(packedItem.Front()))
+				if x1 > x2 && y1 > y2 {
+					stableSurface += (x1 - x2) * (y1 - y2)
 				}
+
+				// Verify if the vertical support in the corners is provided.
+				for idx, point := range footholds {
+					if stableCorners[idx] == 0 && x2 <= float64(point[0]) && float64(point[0]) <= x1 && y2 <= float64(point[1]) && float64(point[1]) <= y1 {
+						stableCorners[idx] = 1
+					}
+				}
+			}
+			// If one of the stability conditions are met, mark the currentItem as stable.
+			if stableSurface / itemSurface > MIN_STABLE_SURFACE || sumArray(stableCorners...) >= MIN_STABLE_CORNERS{
+				stable = true
 			}
 		}
 	}
-	// If one of the stability conditions is met, returns a positive response.
-	// The control is made after all the loop because the loop is needed to check
+	// If the currentItem is stable returns a positive response
+	// This control is made after all the loop because the loop is needed to check
 	// eventual intersections too.
-	if stableSurface / itemSurface > MIN_STABLE_SURFACE || sumArray(stableCorners...) >= MIN_STABLE_CORNERS{
+	if stable {
 		return true
 	}
-
 	// Arrived at this point, a positive response should have been returned.
 	// If it is not, it mean that there is no intersection between currentItem
 	// and the packed cases, but the vertical support is not provided.
