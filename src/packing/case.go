@@ -6,12 +6,14 @@ package packing
 
 // The cases to pick and place
 type Case struct {
+	Code byte
 	X, Y, Z int
 	SizeX, SizeY, SizeZ int
 	Weight, Strength int
 	Rotated bool
 	Pallet *Pallet
 	Layer int
+	CanHold int
 }
 
 // Rotate a case in place
