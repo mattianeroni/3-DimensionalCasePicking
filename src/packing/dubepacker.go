@@ -59,7 +59,7 @@ func intersect (iCase, jCase Case) bool {
 // The method needs to iterate all the list of already packed items to avoid overlaps
 // or intersections.
 // It also verifies the stability of cases, the vertical support, and the strength constraint.
-func fit (currentItem Case, pallet *Pallet, packed []Case) bool {
+func fit (currentItem *Case, pallet *Pallet, packed []Case) bool {
 	// Check the pallet borders
 	X, Y, Z := pallet.Size()
 	if currentItem.Right() > X || currentItem.Back() > Y || currentItem.Top() > Z {
@@ -83,36 +83,53 @@ func fit (currentItem Case, pallet *Pallet, packed []Case) bool {
 
 	for _, packedItem := range packed {
 		// Check intersection with other already placed cases
-		if intersect(currentItem, packedItem) == true {
+		if intersect(*currentItem, packedItem) == true {
 			return false
 		}
-		if !stable {
-			// Check if the currentItem has physical support
-			if currentItem.Z == 0 {
-				// If the currentItem is on the floor and has no intersections
-				// the placement is feasible.
-				stableSurface = itemSurface
-				stableCorners = []int{1, 1, 1, 1}
-			} else if currentItem.Z == packedItem.Top() {
-				// Update the supported surface.
-				x1 := math.Min(float64(currentItem.Right()), float64(packedItem.Right()))
-				x2 := math.Max(float64(currentItem.Left()), float64(packedItem.Left()))
-				y1 := math.Min(float64(currentItem.Back()), float64(packedItem.Back()))
-				y2 := math.Max(float64(currentItem.Front()), float64(packedItem.Front()))
-				if x1 > x2 && y1 > y2 {
-					stableSurface += (x1 - x2) * (y1 - y2)
-				}
 
-				// Verify if the vertical support in the corners is provided.
-				for idx, point := range footholds {
-					if stableCorners[idx] == 0 && x2 <= float64(point[0]) && float64(point[0]) <= x1 && y2 <= float64(point[1]) && float64(point[1]) <= y1 {
-						stableCorners[idx] = 1
+		// Check if the currentItem has physical support
+		if currentItem.Z == 0 && !stable{
+			// If the currentItem is on the floor and has no intersections
+			// the placement is feasible.
+			stableSurface = itemSurface
+			stableCorners = []int{1, 1, 1, 1}
+			stable = true
+		} else if currentItem.Z == packedItem.Top() {
+			x1 := math.Min(float64(currentItem.Right()), float64(packedItem.Right()))
+			x2 := math.Max(float64(currentItem.Left()), float64(packedItem.Left()))
+			y1 := math.Min(float64(currentItem.Back()), float64(packedItem.Back()))
+			y2 := math.Max(float64(currentItem.Front()), float64(packedItem.Front()))
+			// If the cases are one above the other, and packedItem must support currentItem...
+			if x1 > x2 && y1 > y2 {
+				// If the packedItem that must sustain the currentItem cannot hold
+				// any case above, a negative response is immediately returned.
+				if packedItem.CanHold == 0 {
+					return false
+				}
+				// Define how many cases the currentItem is allowed to hold above.
+				currentItem.CanHold = int(math.Max(0, math.Min(float64(currentItem.Strength), float64(packedItem.CanHold - 1.0))))
+
+				// Controls made only if the currentItem has not been marked as stable yet.
+				if !stable {
+					// Update the supported surface.
+					stableSurface += (x1 - x2) * (y1 - y2)
+					// Verify if the vertical support in the corners is provided.
+					for idx, point := range footholds {
+						if stableCorners[idx] == 0 && x2 <= float64(point[0]) && float64(point[0]) <= x1 && y2 <= float64(point[1]) && float64(point[1]) <= y1 {
+							stableCorners[idx] = 1
+						}
+					}
+					// Define the layer of the currentItem.
+					if currentItem.Code == packedItem.Code {
+						currentItem.Layer = packedItem.Layer
+					} else {
+						currentItem.Layer = packedItem.Layer + 1
+					}
+					// If one of the stability conditions are met, mark the currentItem as stable.
+					if stableSurface/itemSurface > MIN_STABLE_SURFACE || sumArray(stableCorners...) >= MIN_STABLE_CORNERS {
+						stable = true
 					}
 				}
-			}
-			// If one of the stability conditions are met, mark the currentItem as stable.
-			if stableSurface / itemSurface > MIN_STABLE_SURFACE || sumArray(stableCorners...) >= MIN_STABLE_CORNERS{
-				stable = true
 			}
 		}
 	}
@@ -152,7 +169,7 @@ func DubePacker (pallet *Pallet, cases []Case) ([]Case, bool){
 	packed = append(packed, currentItem)
 
 	// Interrupt immediately if the packing is already not feasible
-	if currentItem.Top() > Z {
+	if currentItem.Top() > Z || currentItem.Weight > pallet.MaxWeight{
 		return cases, false
 	}
 	if currentItem.Right() > X || currentItem.Back() > Y {
@@ -175,13 +192,13 @@ func DubePacker (pallet *Pallet, cases []Case) ([]Case, bool){
 				// Try with the position
 				pos := getPosition(posIndex, packedItem)
 				setPos(&currentItem, pos)
-				if fit(currentItem, pallet, packed) == true {
+				if fit(&currentItem, pallet, packed) == true {
 					toPack = false
 					break
 				}
 				// Eventually try same position rotating the case
 				rotate(&currentItem)
-				if fit(currentItem, pallet, packed) == true {
+				if fit(&currentItem, pallet, packed) == true {
 					toPack = false
 					break
 				}
