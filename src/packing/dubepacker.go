@@ -59,7 +59,7 @@ func intersect (iCase, jCase Case) bool {
 // The method needs to iterate all the list of already packed items to avoid overlaps
 // or intersections.
 // It also verifies the stability of cases, the vertical support, and the strength constraint.
-func fit (currentItem *Case, pallet *Pallet, packed []Case) bool {
+func fit (currentItem *Case, pallet Pallet, packed []Case) bool {
 	// Check the pallet borders
 	X, Y, Z := pallet.Size()
 	if currentItem.Right() > X || currentItem.Back() > Y || currentItem.Top() > Z {
@@ -152,7 +152,7 @@ func fit (currentItem *Case, pallet *Pallet, packed []Case) bool {
 // Dube, E., Kanavathy, L. R., & Woodview, P. (2006). Optimizing Three-Dimensional
 // Bin Packing Through Simulation. In Sixth IASTED International Conference Modelling,
 // Simulation, and Optimization.
-func DubePacker (pallet *Pallet, cases []Case) ([]Case, bool){
+func DubePacker (pallet Pallet, cases []Case) ([]Case, bool){
 	// Initialize the pivot in the bottom-left-front corner
 	var pivot = Position{0,0,0}
 	X, Y, Z := pallet.Size()
@@ -165,6 +165,7 @@ func DubePacker (pallet *Pallet, cases []Case) ([]Case, bool){
 
 	// Place the first item
 	var currentItem Case = cases[0]
+	currentItem.busyCorners = [3]bool{false, false, false}
 	setPos(&currentItem, pivot)
 	packed = append(packed, currentItem)
 
@@ -181,6 +182,7 @@ func DubePacker (pallet *Pallet, cases []Case) ([]Case, bool){
 
 	// For each item to pack
 	for _, currentItem := range cases[1:]{
+		currentItem.busyCorners = [3]bool{false, false, false}
 		var toPack bool = true
 		// Try the three positions close to the already packed items
 		// and in each position try the two possible rotations.
@@ -189,17 +191,24 @@ func DubePacker (pallet *Pallet, cases []Case) ([]Case, bool){
 		for posIndex := 0; posIndex < 3; posIndex++{
 			// For each packed case
 			for _, packedItem := range packed {
+				// If the packedItem considered corner is marked as
+				// busy, the placement is not even tried.
+				if packedItem.busyCorners[posIndex] == true {
+					continue
+				}
 				// Try with the position
 				pos := getPosition(posIndex, packedItem)
 				setPos(&currentItem, pos)
 				if fit(&currentItem, pallet, packed) == true {
 					toPack = false
+					packedItem.busyCorners[posIndex] = true
 					break
 				}
 				// Eventually try same position rotating the case
 				rotate(&currentItem)
 				if fit(&currentItem, pallet, packed) == true {
 					toPack = false
+					packedItem.busyCorners[posIndex] = true
 					break
 				}
 				// Readjust the item

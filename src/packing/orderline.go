@@ -2,7 +2,7 @@ package packing
 
 
 type OrderLine struct {
-	Code byte
+	Code string
 	Location int
 	Cases []Case
 
