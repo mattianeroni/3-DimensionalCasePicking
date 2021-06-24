@@ -14,7 +14,7 @@ type Case struct {
 	Pallet *Pallet
 	Layer int
 	CanHold int
-	busyCorners [3]bool
+	busyCorners [3]bool  // Needed to speed up the DubePacker
 }
 
 // Rotate a case in place
