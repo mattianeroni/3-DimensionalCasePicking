@@ -18,13 +18,17 @@ func main () {
 	cases := make([]packing.Case, 0)
 	pallet := packing.Pallet{X: 120, Y: 80, Z: 100, MaxWeight: 1000}
 
-	for _, or := range orderlines {
+	for _, or := range orderlines[:5] {
 		cases = append(cases, or.Cases...)
 	}
 	startTime := time.Now()
 	packedCases, done := packing.DubePacker(&pallet, cases)
 	endTime := time.Now()
 
+
+	for _, c := range packedCases {
+		fmt.Println(c.CanHold, c.Layer)
+	}
 
 	fmt.Println("Feasible :", done)
 	fmt.Println("Computational time: ", endTime.Sub(startTime).Seconds())
@@ -66,6 +70,7 @@ func readfile (filename string, delimiter rune) []packing.OrderLine {
 			cases := make([]packing.Case, ncases)
 			for i := 0; i < int(ncases); i++ {
 				cases[i] = packing.Case{
+					Code : byte(code),
 					X : 0,
 					Y : 0 ,
 					Z : 0,
@@ -74,7 +79,9 @@ func readfile (filename string, delimiter rune) []packing.OrderLine {
 					SizeZ : int(sizez),
 					Weight : int(weight),
 					Strength : int(strength),
-					Rotated : false}
+					Rotated : false,
+					Layer : 0,
+					CanHold: int(strength)}
 			}
 
 			orderlines = append(orderlines, packing.OrderLine{Code: byte(code), Location: int(location), Cases:cases})
