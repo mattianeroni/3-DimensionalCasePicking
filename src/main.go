@@ -22,13 +22,8 @@ func main () {
 		cases = append(cases, or.Cases...)
 	}
 	startTime := time.Now()
-	packedCases, done := packing.DubePacker(&pallet, cases)
+	packedCases, done := packing.DubePacker(pallet, cases)
 	endTime := time.Now()
-
-
-	for _, c := range packedCases {
-		fmt.Println(c.CanHold, c.Layer)
-	}
 
 	fmt.Println("Feasible :", done)
 	fmt.Println("Computational time: ", endTime.Sub(startTime).Seconds())
@@ -56,9 +51,8 @@ func readfile (filename string, delimiter rune) []packing.OrderLine {
 	}
 
 	for i, line := range lines {
-		//fmt.Println(line)
 		if i > 0 {
-			code, _ := strconv.ParseInt(line[1],10,64)
+			code := line[1]
 			ncases, _ := strconv.ParseInt(line[2],10,64)
 			sizex, _ := strconv.ParseInt(line[3],10,64)
 			sizey, _ := strconv.ParseInt(line[4],10,64)
@@ -70,7 +64,7 @@ func readfile (filename string, delimiter rune) []packing.OrderLine {
 			cases := make([]packing.Case, ncases)
 			for i := 0; i < int(ncases); i++ {
 				cases[i] = packing.Case{
-					Code : byte(code),
+					Code : code,
 					X : 0,
 					Y : 0 ,
 					Z : 0,
@@ -83,8 +77,7 @@ func readfile (filename string, delimiter rune) []packing.OrderLine {
 					Layer : 0,
 					CanHold: int(strength)}
 			}
-
-			orderlines = append(orderlines, packing.OrderLine{Code: byte(code), Location: int(location), Cases:cases})
+			orderlines = append(orderlines, packing.OrderLine{Code: code, Location: int(location), Cases:cases})
 		}
 	}
 	return orderlines
