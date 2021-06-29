@@ -170,7 +170,7 @@ func DubePacker (pallet Pallet, cases []Case) ([]Case, bool){
 	packed = append(packed, currentItem)
 
 	// Interrupt immediately if the packing is already not feasible
-	if currentItem.Top() > Z || currentItem.Weight > pallet.MaxWeight{
+	if currentItem.Top() > Z {
 		return cases, false
 	}
 	if currentItem.Right() > X || currentItem.Back() > Y {
