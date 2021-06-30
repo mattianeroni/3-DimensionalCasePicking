@@ -18,15 +18,6 @@ const MIN_STABLE_SURFACE float64 = 0.7
 const MIN_STABLE_CORNERS int = 3
 
 
-
-// Sum elements in an array
-func sumArray(arr... int) int {
-	var res int = 0
-	for _, i := range arr {res += i}
-	return res
-}
-
-
 // Given an index and the already packed case around which
 // we are supposed to try a placement, this method returns
 // the corresponding position.
@@ -56,35 +47,31 @@ func intersect (iCase, jCase Case) bool {
 
 
 // This method checks if a case obstruct another, and prevents its placement.
-func obstruct (obstructor, toplace Case, direction int) bool {
-	switch direction {
-	case 0:
-		if obstructor.X > toplace.X &&
-			math.Min(float64(obstructor.Back()), float64(toplace.Back())) > math.Max(float64(obstructor.Front()), float64(toplace.Front())) &&
-			math.Min(float64(obstructor.Top()), float64(toplace.Top())) > math.Max(float64(obstructor.Bottom()), float64(toplace.Bottom())) {
-			return true
-		}
-	case 1:
-		if obstructor.Y > toplace.Y &&
-			math.Min(float64(obstructor.Right()), float64(toplace.Right())) > math.Max(float64(obstructor.Left()), float64(toplace.Left())) &&
-			math.Min(float64(obstructor.Top()), float64(toplace.Top())) > math.Max(float64(obstructor.Bottom()), float64(toplace.Bottom())) {
-			return true
-		}
-	case 2:
-		if obstructor.Z > toplace.Z &&
-			math.Min(float64(obstructor.Right()), float64(toplace.Right())) > math.Max(float64(obstructor.Left()), float64(toplace.Left())) &&
-			math.Min(float64(obstructor.Back()), float64(toplace.Back())) > math.Max(float64(obstructor.Front()), float64(toplace.Front())) {
-			return true
-		}
+func obstruct (toplace, obstructor Case) bool {
+	if !(obstructor.X > toplace.X &&
+		math.Min(float64(obstructor.Back()), float64(toplace.Back())) > math.Max(float64(obstructor.Front()), float64(toplace.Front())) &&
+		math.Min(float64(obstructor.Top()), float64(toplace.Top())) > math.Max(float64(obstructor.Bottom()), float64(toplace.Bottom()))) {
+		return false
 	}
-	return false
+	if !(obstructor.Y > toplace.Y &&
+		math.Min(float64(obstructor.Right()), float64(toplace.Right())) > math.Max(float64(obstructor.Left()), float64(toplace.Left())) &&
+		math.Min(float64(obstructor.Top()), float64(toplace.Top())) > math.Max(float64(obstructor.Bottom()), float64(toplace.Bottom()))) {
+		return false
+	}
+	if !(obstructor.Z > toplace.Z &&
+		math.Min(float64(obstructor.Right()), float64(toplace.Right())) > math.Max(float64(obstructor.Left()), float64(toplace.Left())) &&
+		math.Min(float64(obstructor.Back()), float64(toplace.Back())) > math.Max(float64(obstructor.Front()), float64(toplace.Front()))) {
+		return false
+	}
+	return true
 }
+
 
 // This method verifies if it is possible to place the currentItem in a given position.
 // The method needs to iterate all the list of already packed items to avoid overlaps
 // or intersections.
 // It also verifies the stability of cases, the vertical support, and the strength constraint.
-func fit (currentItem *Case, pallet Pallet, packed []Case) bool {
+func fit (currentItem *Case, pallet Pallet, packed []Case, levelsMap map[*OrderLine]int) bool {
 	// Check the pallet borders
 	X, Y, Z := pallet.Size()
 	if currentItem.Right() > X || currentItem.Back() > Y || currentItem.Top() > Z {
@@ -95,6 +82,7 @@ func fit (currentItem *Case, pallet Pallet, packed []Case) bool {
 	// alternatively, the 70% of its surface lying on a case underneath.
 	var stableSurface float64 = 0
 	var stableCorners = []int{0,0,0,0}  // To use as boolean
+	var stableSum int = 0
 	var stable bool = false
 	itemSurface := float64(currentItem.SizeX * currentItem.SizeY)
 
@@ -105,6 +93,14 @@ func fit (currentItem *Case, pallet Pallet, packed []Case) bool {
 		{currentItem.Right(), currentItem.Back(), currentItem.Z},
 		{currentItem.Right(), currentItem.Front(), currentItem.Z}}
 
+	// Check if the currentItem can be obstructed by other items.
+	// In other words we check a priori if currentItem can be physically be
+	// placed with no need of further controls.
+	var obstructable bool = true
+	if currentItem.X == 0 || currentItem.Y == 0 || currentItem.Right() == X || currentItem.Back() == Y {
+		obstructable = false
+	}
+
 	for _, packedItem := range packed {
 		// Check intersection with other already placed cases
 		if intersect(*currentItem, packedItem) == true {
@@ -112,15 +108,10 @@ func fit (currentItem *Case, pallet Pallet, packed []Case) bool {
 		}
 		// Check if the currentItem can physically be placed in that position,
 		// or, alternatively, the packedItem prevents this.
-		var preventedPlacement bool = true
-		for i := 0; i < 3; i++ {
-			if obstruct(packedItem, *currentItem, i) == false {
-				preventedPlacement = false
-				break
+		if obstructable == true {
+			if obstruct(*currentItem, packedItem) == true {
+				return false
 			}
-		}
-		if preventedPlacement == true {
-			return false
 		}
 
 		// Check if the currentItem has physical support
@@ -129,7 +120,15 @@ func fit (currentItem *Case, pallet Pallet, packed []Case) bool {
 			// the placement is feasible.
 			stableSurface = itemSurface
 			stableCorners = []int{1, 1, 1, 1}
+			stableSum = 4
 			stable = true
+			// Update the level of the currentItem OrderLine
+			if val, ok := levelsMap[currentItem.OrderLine]; ok {
+				levelsMap[currentItem.OrderLine] = int(math.Max(float64(val), 0))
+			} else {
+				levelsMap[currentItem.OrderLine] = 0
+			}
+
 		} else if currentItem.Z == packedItem.Top() {
 			x1 := math.Min(float64(currentItem.Right()), float64(packedItem.Right()))
 			x2 := math.Max(float64(currentItem.Left()), float64(packedItem.Left()))
@@ -153,16 +152,20 @@ func fit (currentItem *Case, pallet Pallet, packed []Case) bool {
 					for idx, point := range footholds {
 						if stableCorners[idx] == 0 && x2 <= float64(point[0]) && float64(point[0]) <= x1 && y2 <= float64(point[1]) && float64(point[1]) <= y1 {
 							stableCorners[idx] = 1
+							stableSum++
 						}
 					}
-					// Define the layer of the currentItem.
-					if currentItem.Code == packedItem.Code {
-						currentItem.Layer = packedItem.Layer
-					} else {
-						currentItem.Layer = packedItem.Layer + 1
+					// Define the layer of the order line corresponding to currentItem.
+					if packedItem.Code != currentItem.Code {
+						if val, ok := levelsMap[currentItem.OrderLine]; ok {
+							levelsMap[currentItem.OrderLine] = int(math.Max(float64(val), float64(levelsMap[packedItem.OrderLine] + 1)))
+						} else {
+							levelsMap[currentItem.OrderLine] = levelsMap[packedItem.OrderLine] + 1
+						}
 					}
+
 					// If one of the stability conditions are met, mark the currentItem as stable.
-					if stableSurface/itemSurface > MIN_STABLE_SURFACE || sumArray(stableCorners...) >= MIN_STABLE_CORNERS {
+					if stableSurface/itemSurface > MIN_STABLE_SURFACE || stableSum >= MIN_STABLE_CORNERS {
 						stable = true
 					}
 				}
@@ -188,7 +191,7 @@ func fit (currentItem *Case, pallet Pallet, packed []Case) bool {
 // Dube, E., Kanavathy, L. R., & Woodview, P. (2006). Optimizing Three-Dimensional
 // Bin Packing Through Simulation. In Sixth IASTED International Conference Modelling,
 // Simulation, and Optimization.
-func DubePacker (pallet Pallet, cases []Case) ([]Case, bool){
+func DubePacker (pallet Pallet, cases []Case) (bool, []Case, map[*OrderLine]int){
 	// Initialize the pivot in the bottom-left-front corner
 	var pivot = Position{0,0,0}
 	// Initilize the size of the pallet
@@ -196,6 +199,8 @@ func DubePacker (pallet Pallet, cases []Case) ([]Case, bool){
 	// Initilize the already packed cases
 	var packed = make([]Case, len(pallet.Cases))
 	copy(packed, pallet.Cases)
+	// Initialize the map containig the level for each order line
+	levelsMap := make(map[*OrderLine]int)
 
 	// Sort cases for decreasing strength
 	sort.Slice(cases, func(i, j int) bool {
@@ -205,25 +210,24 @@ func DubePacker (pallet Pallet, cases []Case) ([]Case, bool){
 	// Place the first item
 	var currentItem Case = cases[0]
 	currentItem.busyCorners = [3]bool{false, false, false}
-	currentItem.Layer = 0
+	levelsMap[currentItem.OrderLine] = 0
 	setPos(&currentItem, pivot)
 	packed = append(packed, currentItem)
 
 	// Interrupt immediately if the packing is already not feasible
 	if currentItem.Top() > Z {
-		return cases, false
+		return false, cases, levelsMap
 	}
 	if currentItem.Right() > X || currentItem.Back() > Y {
 		rotate(&currentItem)
 		if currentItem.Right() > X || currentItem.Back() > Y {
-			return cases, false
+			return false, cases, levelsMap
 		}
 	}
 
 	// For each item to pack
 	for _, currentItem := range cases[1:]{
 		currentItem.busyCorners = [3]bool{false, false, false}
-		currentItem.Layer = 0
 		var toPack bool = true
 		// Try the three positions close to the already packed items
 		// and in each position try the two possible rotations.
@@ -240,14 +244,14 @@ func DubePacker (pallet Pallet, cases []Case) ([]Case, bool){
 				// Try with the position
 				pos := getPosition(posIndex, packedItem)
 				setPos(&currentItem, pos)
-				if fit(&currentItem, pallet, packed) == true {
+				if fit(&currentItem, pallet, packed, levelsMap) == true {
 					toPack = false
 					packedItem.busyCorners[posIndex] = true
 					break
 				}
 				// Eventually try same position rotating the case
 				rotate(&currentItem)
-				if fit(&currentItem, pallet, packed) == true {
+				if fit(&currentItem, pallet, packed, levelsMap) == true {
 					toPack = false
 					packedItem.busyCorners[posIndex] = true
 					break
@@ -260,9 +264,9 @@ func DubePacker (pallet Pallet, cases []Case) ([]Case, bool){
 		}
 		// If all positions have been tried and the packing is not possible
 		// there is no feasible solution.
-		if toPack == true { return cases, false }
+		if toPack == true { return false, cases, levelsMap }
 		// If currentItem has been packed add it to the list of packed
 		packed = append(packed, currentItem)
 	}
-	return packed, true
+	return true, packed, levelsMap
 }
