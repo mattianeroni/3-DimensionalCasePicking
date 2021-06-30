@@ -16,7 +16,7 @@ import (
 func main () {
 	orderlines := readfile("./test/testproblem.csv",';')
 	cases := make([]packing.Case, 0)
-	pallet := packing.Pallet{X: 200, Y: 150, Z: 200, MaxWeight: 1000}
+	pallet := packing.Pallet{X: 200, Y: 150, Z: 200, MaxWeight: 450}
 
 
 	for _, or := range orderlines {
@@ -24,18 +24,11 @@ func main () {
 	}
 
 	startTime := time.Now()
-	packedCases, done := packing.DubePacker(pallet, cases)
+	done, packedCases, levelsMap := packing.DubePacker(pallet, cases)
 	endTime := time.Now()
 	fmt.Println("Computational time: ", endTime.Sub(startTime).Seconds())
-	for i := 0; i < 1000; i++ {
-		startTime := time.Now()
-		packedCases, done = packing.DubePacker(pallet, cases)
-		endTime := time.Now()
-		fmt.Println("Computational time: ", endTime.Sub(startTime).Seconds())
-	}
-
-
 	fmt.Println("Feasible :", done)
+	fmt.Println(levelsMap)
 
 
 	writefile("./test/results.csv", packedCases)
@@ -45,8 +38,8 @@ func main () {
 
 
 
-func readfile (filename string, delimiter rune) []packing.OrderLine {
-	orderlines := make([]packing.OrderLine, 0)
+func readfile (filename string, delimiter rune) []*packing.OrderLine {
+	orderlines := make([]*packing.OrderLine, 0)
 
 	file, err := os.Open(filename)
 	if err != nil {
@@ -72,6 +65,7 @@ func readfile (filename string, delimiter rune) []packing.OrderLine {
 			location, _ := strconv.ParseInt(line[8],10,64)
 
 			cases := make([]packing.Case, ncases)
+			orderLine := &packing.OrderLine{Code: code, Location: int(location)}
 			for i := 0; i < int(ncases); i++ {
 				cases[i] = packing.Case{
 					Code : code,
@@ -84,10 +78,11 @@ func readfile (filename string, delimiter rune) []packing.OrderLine {
 					Weight : int(weight),
 					Strength : int(strength),
 					Rotated : false,
-					Layer : 0,
+					OrderLine: orderLine,
 					CanHold: int(strength)}
 			}
-			orderlines = append(orderlines, packing.OrderLine{Code: code, Location: int(location), Cases:cases})
+			orderLine.Cases = cases
+			orderlines = append(orderlines, orderLine)
 		}
 	}
 	return orderlines
