@@ -5,16 +5,15 @@ import matplotlib.pyplot as plt
 
 
 class Solver (object):
-
-	def __init__(self, orderlines, edges, dists):
+    def __init__(self, orderlines, edges, dists):
         self.orderlines = orderlines
         self.edges = edges
         self.dists = dists
 
-		self.history = collections.deque()
+	self.history = collections.deque()
 
 
-	def plot(self):
+    def plot(self):
         plt.plot(self.history)
         plt.ylabel("Total distance")
         plt.xlabel("Improvements")
