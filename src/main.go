@@ -2,36 +2,49 @@ package main
 
 import (
 	"3DCasePicking/packing"
+	"3DCasePicking/warehouse"
 	"bufio"
 	"encoding/csv"
 	"fmt"
 	"os"
 	"strconv"
-	"time"
 )
 
 
 
 
 func main () {
+	G := warehouse.Graph()
+	val, ok := G[0][24]
+	if ok {
+		fmt.Println(val)
+	} else {
+		fmt.Println("No")
+	}
+
+
+
+	/*
 	orderlines := readfile("./test/testproblem.csv",';')
 	cases := make([]packing.Case, 0)
-	pallet := packing.Pallet{X: 200, Y: 150, Z: 200, MaxWeight: 450}
+	pallet := packing.NewPallet()
 
 
-	for _, or := range orderlines {
+	for _, or := range orderlines [:7]{
 		cases = append(cases, or.Cases...)
 	}
 
 	startTime := time.Now()
-	done, packedCases, levelsMap := packing.DubePacker(pallet, cases)
+	done, packedCases, _ := packing.DubePacker(pallet, cases)
 	endTime := time.Now()
 	fmt.Println("Computational time: ", endTime.Sub(startTime).Seconds())
 	fmt.Println("Feasible :", done)
-	fmt.Println(levelsMap)
+	//fmt.Println(levelsMap)
 
 
 	writefile("./test/results.csv", packedCases)
+	*/
+
 }
 
 
@@ -86,6 +99,13 @@ func readfile (filename string, delimiter rune) []*packing.OrderLine {
 		}
 	}
 	return orderlines
+}
+
+
+
+
+func buildEdges (orderlines []packing.OrderLine, dists [][]int){
+
 }
 
 
