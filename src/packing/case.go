@@ -11,10 +11,7 @@ type Case struct {
 	SizeX, SizeY, SizeZ int
 	Weight, Strength int
 	Rotated bool
-
-	Pallet *Pallet
 	OrderLine *OrderLine
-
 	CanHold int
 	busyCorners [3]bool  			// Needed to speed up the DubePacker
 }

@@ -108,10 +108,8 @@ func fit (currentItem *Case, pallet Pallet, packed []Case, levelsMap map[*OrderL
 		}
 		// Check if the currentItem can physically be placed in that position,
 		// or, alternatively, the packedItem prevents this.
-		if obstructable == true {
-			if obstruct(*currentItem, packedItem) == true {
-				return false
-			}
+		if obstructable == true && obstruct(*currentItem, packedItem) == true {
+			return false
 		}
 
 		// Check if the currentItem has physical support
@@ -197,10 +195,9 @@ func DubePacker (pallet Pallet, cases []Case) (bool, []Case, map[*OrderLine]int)
 	// Initilize the size of the pallet
 	X, Y, Z := pallet.Size()
 	// Initilize the already packed cases
-	var packed = make([]Case, len(pallet.Cases))
-	copy(packed, pallet.Cases)
+	var packed []Case = pallet.Cases					 // Pallet is passed by value so the origilnals are not changed
 	// Initialize the map containig the level for each order line
-	levelsMap := make(map[*OrderLine]int)
+	var levelsMap map[*OrderLine]int = pallet.LayersMap  // Pallet is passed by value so the origilnals are not changed
 
 	// Sort cases for decreasing strength
 	sort.Slice(cases, func(i, j int) bool {
@@ -242,8 +239,8 @@ func DubePacker (pallet Pallet, cases []Case) (bool, []Case, map[*OrderLine]int)
 					continue
 				}
 				// Try with the position
-				pos := getPosition(posIndex, packedItem)
-				setPos(&currentItem, pos)
+				pivot = getPosition(posIndex, packedItem)
+				setPos(&currentItem, pivot)
 				if fit(&currentItem, pallet, packed, levelsMap) == true {
 					toPack = false
 					packedItem.busyCorners[posIndex] = true
