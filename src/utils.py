@@ -47,7 +47,7 @@ def get_edges (orderlines, dists):
         origin = orderlines[i]
         end = orderlines[j]
         cost = dists[origin.location, end.location]
-        saving = origin.dn_edge.cost + end.nd_edge.cost - cost
+        saving = origin.nd_edge.cost + end.dn_edge.cost - cost
         direct = Edge(origin, end, cost, saving)
         inv = Edge(end, origin, cost, saving)
         direct.inverse = inv

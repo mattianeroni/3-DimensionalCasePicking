@@ -12,4 +12,6 @@ class Pallet (object):
         self.maxWeight = PALLET_MAX_WEIGHT
         self.cases = collections.deque()
         self.layersMap = dict()
-        self.orderlines = collections.deque()
+        self.orderlines = set()
+        self.weight = 0
+        self.volume = 0

@@ -4,9 +4,11 @@ def rotate (case):
     case.sizex, case.sizey = case.sizey, case.sizex
 
 
-
-def froze(case):
+def froze (case):
     case.frozen = dict(case.__dict__)
+
+def restore (case):
+    case.__dict__.update(**case.frozen)
 
 
 class Case (object):
@@ -25,23 +27,16 @@ class Case (object):
         self.strength = strength
         self.canHold = strength
         self.pallet = None
+        self.busyCorners = [False, False, False]  # Used to speed up the DubePacker
         self.frozen = None
 
     def __repr__(self):
         return f"Case(position={self.position}, size=({self.sizex}, {self.sizey}, {self.sizez}), rotated={self.rotated}, level={self.level})"
 
     def __copy__(self):
-        cls = self.__class__
-        result = cls.__new__(cls)
-        result.__dict__.update(self.__dict__)
-        return result
-
-    def rotate (self):
-        self.rotated = not self.rotated
-        self.sizex, self.sizey = self.sizey, self.sizex
-
-    def froze (self):
-        self.frozen = dict(self.__dict__)
+        obj = Case.__new__(self.__class__)
+        obj.__dict__.update(self.__dict__)
+        return obj
 
     @property
     def position (self):

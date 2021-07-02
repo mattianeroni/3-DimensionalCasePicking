@@ -20,15 +20,13 @@ if __name__ == "__main__":
 	dists = warehouse.distance_matrix
 	edges = utils.get_edges(orderlines, dists)
 
-
 	solver = Solver(orderlines, edges, dists)
-
-
 	start = time.time()
-	sol = solver.getSol(sorted(edges, key=operator.attrgetter("saving")), orderlines) #__call__(maxtime=60)
+	sol, cost = solver.__call__(maxtime=60)
 	print(time.time() - start)
-	#solver.plot()
-	print(len(sol))
-	for i in sol:
-		utils.plot(i)
-	
+
+	print(cost)
+	for pallet in sol:
+		utils.plot(pallet)
+
+	solver.plot()

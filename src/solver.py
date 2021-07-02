@@ -5,9 +5,16 @@ import itertools
 import matplotlib.pyplot as plt
 from math import log
 import time
+import copy
 
 from packing import dubePacker
-from pallet import Pallet
+from case import froze, restore
+from pallet import Pallet, PALLET_MAX_WEIGHT, PALLET_SIZE
+
+import utils
+
+# Define teh maximum volume capacity of a pallet
+PALLET_MAX_VOLUME = PALLET_SIZE[0] * PALLET_SIZE[1] * PALLET_SIZE[2]
 
 
 def _bra (array):
@@ -19,9 +26,7 @@ def _bra (array):
 
 
 
-
 class Solver (object):
-
     def __init__(self, orderlines, edges, dists):
         self.orderlines = orderlines
         self.edges = edges
@@ -29,93 +34,111 @@ class Solver (object):
         self.history = collections.deque()
 
 
-    def plot(self):
+    def plot (self):
         plt.plot(self.history)
-        plt.ylabel("Total distance")
         plt.xlabel("Iterations")
+        plt.ylabel("Total Distance")
         plt.show()
 
-
     @staticmethod
-    def getSol (edges, orderlines):
-        pallets = []
+    def getSolution (edges, orderlines):
+        # Build a dummy solution
+        palletsList = []
         for orderline in orderlines:
+            cases = orderline.cases
             p = Pallet()
-            done, packedCases, layersMap = dubePacker(p, list(orderline.cases))
-            if not done: raise Exception("Unfeasible problem - Necessity to split order lines.")
-            p.orderlines.append(orderline)
-            p.cases, p.layersMap = packedCases, layersMap
+            done, p.cases, p.layersMap = dubePacker(p, cases)
+            assert done == True
+            p.weight = sum(c.weight for c in cases)
+            p.volume = sum(c.sizex*c.sizey*c.sizez for c in cases)
             orderline.pallet = p
-            pallets.append(p)
+            p.orderlines.add(orderline)
+            palletsList.append(p)
 
-        for n, edge in enumerate(edges):
-            iPallet = edge.origin.pallet
-            jPallet = edge.end.pallet
-
-            if iPallet == jPallet:
+        # Merging process
+        for edge in _bra(edges):
+            # Picks an edge and read the pallet it could connect
+            host = edge.origin.pallet
+            hosted = edge.end.pallet
+            # The the hosting pallet and the hosted pallet are the same the procedure
+            # interrupts and goes to the next edge
+            if host == hosted:
                 continue
 
-            if sum(i.weight for i in iPallet.cases) + sum(i.weight for i  in jPallet.cases) < iPallet.maxWeight:
-                done, packedCases, layersMap = dubePacker(iPallet, list(jPallet.cases))
+            # Control the volumetric lower bound
+            if host.volume + hosted.volume > PALLET_MAX_VOLUME:
+                continue
+            # Control the weight lower bound
+            if host.weight + hosted.weight > PALLET_MAX_WEIGHT:
+                continue
+            # Try merging
+            [froze(c) for c in hosted.cases]
+            done, packedCases, layersMap = dubePacker(host, hosted.cases)
+            if done:
+                host.cases = packedCases
+                host.layersMap = layersMap
+                host.weight += hosted.weight
+                host.volume += hosted.volume
+                host.orderlines.update(hosted.orderlines)
+                palletsList.remove(hosted)
+                for line in hosted.orderlines:
+                    line.pallet = host
+                continue
+            else:
+                [restore(c) for c in hosted.cases]
+            # Eventually try a merging using the inverse of the edge -- i.e., switching
+            # the hositng pallet with the hosted pallet.
+            host, hosted = hosted, host
+            [froze(c) for c in hosted.cases]
+            done, packedCases, layersMap = dubePacker(host, hosted.cases)
+            if done:
+                host.cases = packedCases
+                host.layersMap = layersMap
+                host.weight += hosted.weight
+                host.volume += hosted.volume
+                host.orderlines.update(hosted.orderlines)
+                palletsList.remove(hosted)
+                for line in hosted.orderlines:
+                    line.pallet = host
+            else:
+                [restore(c) for c in hosted.cases]
 
-                if done:
-                    iPallet.cases = packedCases
-                    iPallet.layersMap = layersMap
-                    iPallet.orderlines.extend(jPallet.orderlines)
-                    pallets.remove(jPallet)
-                    for i in jPallet.orderlines:
-                        i.pallet = iPallet
-                    continue
-
-
-            iPallet, jPallet = jPallet, iPallet
-            if sum(i.weight for i in iPallet.cases) + sum(i.weight for i in jPallet.cases) < iPallet.maxWeight:
-                done, packedCases, layersMap = dubePacker(iPallet, list(jPallet.cases))
-                if done:
-                    iPallet.cases = packedCases
-                    iPallet.layersMap = layersMap
-                    iPallet.orderlines.extend(jPallet.orderlines)
-                    pallets.remove(jPallet)
-                    for i in jPallet.orderlines:
-                        i.pallet = iPallet
-
-        return pallets
-
-
+        # At the end, return the palletsList
+        return palletsList
 
     @staticmethod
-    def getCost (pallets, dists):
+    def getCost(solution, dists):
         total = 0
-        for pallet in pallets:
-            sorted_orderlines = tuple(sorted(pallet.layersMap.items(), key=operator.itemgetter(1)).keys())
-            total += dists[0, sorted_orderlines[0].location] + dists[sorted_orderlines[-1].location, 0]
-            total += sum(dists[i.location, j.location] for i, j in zip(sorted_orderlines[:-1], sorted_orderlines[1:]))
+        for pallet in solution:
+            sort_orderlines = tuple(dict(sorted(pallet.layersMap.items(), key=operator.itemgetter(1))).keys())
+            total += dists[0, sort_orderlines[0].location] + dists[sort_orderlines[-1].location, 0]
+            total += sum(dists[i.location, j.location] for i, j in zip(sort_orderlines[:-1], sort_orderlines[1:]))
         return total
 
 
-    def __call__(self, maxtime):
-        # Move the useful functions to the stack
-        save = self.history.append
-        getSol = self.getSol
+    def __call__ (self, maxtime):
+        # Move useful data to the stack
+        getSolution = self.getSolution
         getCost = self.getCost
-        # move useful data to the stack
         dists = self.dists
-        edges = sorted(self.edges, key=operator.attrgetter("saving"))
         orderlines = self.orderlines
+        save = self.history.append
+        # Generate the savings list
+        savingsList = sorted(self.edges, key=operator.attrgetter("saving"), reverse=True)
         # Generate a starting solution
-        best = getSol(edges, orderlines)
-        bestcost = getCost(best)
-        # Multi-start iterated local search
+        best = getSolution(savingsList, orderlines)
+        bestcost = getCost(best, dists)
+        # Start a multistart iterated local search
         start = time.time()
         while time.time() - start < maxtime:
             # Generate a new solution
-            newsol = getSol(edges, orderlines)
-            newcost = getCost(newsol)
-            # Eventually updates the best
-            if newcost < bestcost:
-                bestcost, bestsol = newcost, newsol
+            newsol = getSolution(savingsList, orderlines)
+            newcost = getCost(newsol, dists)
 
-            # Store the cost of the best solution found so far
+            # Eventually update the best
+            if newcost < bestcost:
+                best, bestcost = newsol, newcost
+            # Save the current best
             save(bestcost)
-        # Return the best solution found
+
         return best, bestcost
