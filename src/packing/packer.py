@@ -164,8 +164,7 @@ def fit (currentItem, pallet, packed, layersMap):
 # Bin Packing Through Simulation. In Sixth IASTED International Conference Modelling,
 # Simulation, and Optimization.
 def dubePacker (pallet, cases):
-    # Initialize the pivot in the bottom-left-front corner
-    pivot = (0,0,0)
+    # Copy pallet's data
     X, Y, Z = pallet.size
     packed = collections.deque(pallet.cases)
 
@@ -174,13 +173,14 @@ def dubePacker (pallet, cases):
     layersMap = dict(pallet.layersMap)
 
     # Sort cases for decreasing strength
-    cases.sort(key=operator.attrgetter('strength'), reverse=True)
+    cases = sorted(cases, key=operator.attrgetter('strength'), reverse=True)
 
     # For each item to pack
-    for i, currentItem in enumerate(cases):
-        if i == 0 and len(packed) == 0:
+    for currentItem in cases:
+        currentItem.busyCorners = [False, False, False]
+        if len(packed) == 0:
             # Place the first item
-            currentItem = cases[0]
+            pivot = (0,0,0)
             currentItem.setPosition(pivot)
             layersMap[currentItem.orderline] = 0
 
@@ -203,28 +203,33 @@ def dubePacker (pallet, cases):
             for posIndex in range(3):
                 # For each packed case
                 for packedItem in packed:
-                    # Try with the position
-                    pos = getPosition(posIndex, packedItem)
-                    currentItem.setPosition(pos)
-                    if fit(currentItem, pallet, packed, layersMap):
-                        toPack = False
-                        break
-                    # Eventually try same position rotating the case
-                    rotate(currentItem)
-                    if fit(currentItem, pallet, packed, layersMap):
-                        toPack = False
-                        break
-
-                    # Readjust the item
-                    rotate(currentItem)
+                    # Try packing only if the current corner is not marked as busy.
+                    if not packedItem.busyCorners[posIndex]:
+                        # Set the currentItem in a certain position
+                        pivot = getPosition(posIndex, packedItem)
+                        currentItem.setPosition(pivot)
+                        if currentItem.rotated:
+                            rotate(currentItem)
+                        # Try the two possible rotations
+                        if fit(currentItem, pallet, packed, layersMap):
+                            toPack = False
+                            packedItem.busyCorners[posIndex] = True
+                            break
+                        # Eventually try same position rotating the case
+                        rotate(currentItem)
+                        if fit(currentItem, pallet, packed, layersMap):
+                            toPack = False
+                            packedItem.busyCorners[posIndex] = True
+                            break
+                        # Readjust the item
+                        rotate(currentItem)
 
                 # If already packed we don't need to try other positions.
                 if not toPack: break
 
             # If all positions have been tried and the packing is not possible
             # there is no feasible solution.
-            if toPack:
-                return False, packed, layersMap
+            if toPack: return False, packed, layersMap
             # If currentItem has been packed add it to the list of packed
             packed.append(currentItem)
 
