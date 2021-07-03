@@ -2,38 +2,30 @@ package main
 
 import (
 	"3DCasePicking/packing"
-	"3DCasePicking/warehouse"
 	"bufio"
 	"encoding/csv"
 	"fmt"
 	"os"
 	"strconv"
+	"time"
 )
 
 
-
-
 func main () {
-	G := warehouse.Graph()
-	matrix := warehouse.DistanceMatrix(G)
 
-	for _, i := range matrix {
-		for _, j := range i {
-			fmt.Print(j)
-			fmt.Print(" ")
-		}
-		fmt.Print("\n")
-	}
-	/*
+	// Warehouse layout construction
+	//G := warehouse.Graph()
+	//matrix := warehouse.DistanceMatrix(G)
+
+	// Problem import and creation
 	orderlines := readfile("./test/testproblem.csv",';')
 	cases := make([]packing.Case, 0)
 	pallet := packing.NewPallet()
-
-
-	for _, or := range orderlines [:7]{
+	for _, or := range orderlines [:2]{
 		cases = append(cases, or.Cases...)
 	}
 
+	// Packing
 	startTime := time.Now()
 	done, packedCases, _ := packing.DubePacker(pallet, cases)
 	endTime := time.Now()
@@ -41,12 +33,8 @@ func main () {
 	fmt.Println("Feasible :", done)
 	//fmt.Println(levelsMap)
 
-
+	// Export results
 	writefile("./test/results.csv", packedCases)
-	*/
-
-
-
 }
 
 
@@ -106,8 +94,36 @@ func readfile (filename string, delimiter rune) []*packing.OrderLine {
 
 
 
-func buildEdges (orderlines []packing.OrderLine, dists [][]int){
-
+func buildEdges (orderlines []*packing.OrderLine, dists [][]float64) []*packing.Edge{
+	var cost, saving float64
+	var first, second *packing.Edge
+	var edges []*packing.Edge
+	// Build edges connecting orderlines to I/O point
+	for _, orderline := range orderlines {
+		cost = dists[0][orderline.Location]
+		first = &packing.Edge{Destination: orderline, Cost: cost, Saving: 0}
+		second = &packing.Edge{Origin: orderline, Cost: cost, Saving: 0}
+		first.Inverse = second
+		second.Inverse = first
+		orderline.FromDepot = first
+		orderline.ToDepot = second
+	}
+	// Build edges connecting storage locations to each other
+	for i := 0; i < len(orderlines) - 1; i++ {
+		for j := i + 1; j < len(orderlines); j++ {
+			firstLine := orderlines[i]
+			secondLine := orderlines[j]
+			cost = dists[firstLine.Location][secondLine.Location]
+			saving = firstLine.ToDepot.Cost + secondLine.FromDepot.Cost - cost
+			first = &packing.Edge{Origin: firstLine, Destination: secondLine, Cost: cost, Saving: saving}
+			second = &packing.Edge{Origin: secondLine, Destination: firstLine, Cost: cost, Saving: saving}
+			first.Inverse = second
+			second.Inverse = first
+			edges = append(edges, first)
+		}
+	}
+	// Return edges
+	return edges
 }
 
 
