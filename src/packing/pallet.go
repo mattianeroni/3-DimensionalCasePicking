@@ -10,6 +10,7 @@ const PALLET_WEIGHT int = 450
 type Pallet struct {
 	X, Y, Z   int
 	MaxWeight int
+	weight, volume int
 	Cases []Case
 	LayersMap map[*OrderLine]int
 	OrderLines []*OrderLine
@@ -18,7 +19,7 @@ type Pallet struct {
 // Constructor
 func NewPallet() Pallet {
 	return Pallet{X: PALLET_X, Y: PALLET_Y, Z: PALLET_Z, MaxWeight: PALLET_WEIGHT,
-		LayersMap: make(map[*OrderLine]int), OrderLines: make([]*OrderLine,0)}
+		Cases: make([]Case,0), LayersMap: make(map[*OrderLine]int), OrderLines: make([]*OrderLine,0)}
 }
 
 // Useful to unpack the dimensions
