@@ -12,7 +12,7 @@ const CROSS_AISLE_SIZE float64 = 6.0
 const LOCATIONS int = 10
 
 // Initialize the number of nodes
-const NUMBER_OF_LOCATIONS int =  (LOCATIONS * (CROSS_AISLES + 1) + CROSS_AISLES + 2) * AISLES
+const NUMBER_OF_LOCATIONS int = (LOCATIONS * (CROSS_AISLES + 1) + CROSS_AISLES + 2) * AISLES
 
 type GraphType map[int]map[int]float64
 
@@ -85,7 +85,7 @@ func DistanceMatrix (G GraphType) [][]float64 {
 			if val, ok := G[x][y]; ok {
 				matrix[x][y] = val
 			} else {
-				matrix[x][y] = math.Inf(1)
+				matrix[x][y] = math.MaxFloat64
 			}
 		}
 	}
@@ -104,3 +104,6 @@ func DistanceMatrix (G GraphType) [][]float64 {
 	// Return the distance matrix
 	return matrix
 }
+
+
+
