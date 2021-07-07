@@ -2,9 +2,12 @@ package main
 
 import (
 	"3DCasePicking/packing"
+	solver2 "3DCasePicking/solver"
+	"3DCasePicking/warehouse"
 	"bufio"
 	"encoding/csv"
 	"fmt"
+	"math/rand"
 	"os"
 	"strconv"
 	"time"
@@ -12,29 +15,34 @@ import (
 
 
 func main () {
+	// Set random seed
+	rand.Seed(time.Now().Unix())
 
 	// Warehouse layout construction
-	//G := warehouse.Graph()
-	//matrix := warehouse.DistanceMatrix(G)
+	G := warehouse.Graph()
+	dists := warehouse.DistanceMatrix(G)
+
+	fmt.Println(len(dists[0]))
 
 	// Problem import and creation
 	orderlines := readfile("./test/testproblem.csv",';')
-	cases := make([]packing.Case, 0)
-	pallet := packing.NewPallet()
-	for _, or := range orderlines [:2]{
-		cases = append(cases, or.Cases...)
-	}
+	edges := buildEdges(orderlines, dists)
+
+	// Initialize the solver
+	solver := solver2.NewSolver(orderlines, edges, dists)
+
 
 	// Packing
 	startTime := time.Now()
-	done, packedCases, _ := packing.DubePacker(pallet, cases)
+	sol := solver.Heuristic(0.2)
 	endTime := time.Now()
 	fmt.Println("Computational time: ", endTime.Sub(startTime).Seconds())
-	fmt.Println("Feasible :", done)
-	//fmt.Println(levelsMap)
+	fmt.Println("Number of pallets:", len(sol.Pallets))
+	fmt.Println("Cost :", sol.Cost)
+	fmt.Println()
 
 	// Export results
-	writefile("./test/results.csv", packedCases)
+	writefile("./test/results.csv", sol.Pallets)
 }
 
 
@@ -129,7 +137,7 @@ func buildEdges (orderlines []*packing.OrderLine, dists [][]float64) []*packing.
 
 
 
-func writefile(filename string, cases []packing.Case) {
+func writefile(filename string, pallets []*packing.Pallet) {
 	f, err := os.Create(filename)
 	if err != nil {
 		panic(err)
@@ -139,8 +147,10 @@ func writefile(filename string, cases []packing.Case) {
 	w := bufio.NewWriter(f)
 	defer w.Flush()
 	w.WriteString("Stop,X,Y,Z,SizeX,SizeY,SizeZ\n")
-	for _, item := range cases {
-		w.WriteString(fmt.Sprintf("%d,%d,%d,%d,%d,%d,%d\n",0, item.X, item.Y, item.Z, item.SizeX, item.SizeY, item.SizeZ))
+	for _, pallet := range pallets {
+		for _, item := range pallet.Cases {
+			w.WriteString(fmt.Sprintf("%d,%d,%d,%d,%d,%d,%d\n", 0, item.X, item.Y, item.Z, item.SizeX, item.SizeY, item.SizeZ))
+		}
+		w.WriteString(fmt.Sprintf("%d,%d,%d,%d,%d,%d,%d\n", 1, 0, 0, 0, 0, 0, 0))
 	}
-	w.WriteString(fmt.Sprintf("%d,%d,%d,%d,%d,%d,%d\n",1, 0,0,0,0,0,0))
 }
