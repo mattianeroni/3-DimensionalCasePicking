@@ -49,23 +49,43 @@ def intersect (iCase, jCase):
 
 # This method checks if the placement of a case is possible or is prevetend
 # by the presence on another one.
-#def obstruct (topack, obstructor):
-#    if not (obstructor.x > topack.x and \
-#       min(obstructor.back, topack.back) > max(obstructor.front, topack.front) and \
-#       min(obstructor.top, topack.top) > max(obstructor.bottom, topack.bottom)):
-#       return False
-#
-#    if not (obstructor.y > topack.y and \
-#       min(obstructor.right, topack.right) > max(obstructor.left, topack.left) and \
-#       min(obstructor.top, topack.top) > max(obstructor.bottom, topack.bottom)):
-#       return False
-#
-#    if not (obstructor.z > topack.z and \
-#       min(iCase.right, jCase.right) > max(iCase.left, jCase.left) and \
-#       min(iCase.back, jCase.back) > max(iCase.front, jCase.front)):
-#       return False
-#
-#    return True
+def check_obstruction (toplace, obstructor, possibleInserts, insertsSum):
+    # If there is an overlap along X-axis
+    overlapX = True if min(obstructor.right, toplace.right) > max(obstructor.left, toplace.left) else False
+    # If there is an overlap along Y-axis
+    overlapY = True if min(obstructor.back, toplace.back) > max(obstructor.front, toplace.front) else False
+    # If there is an overlap along Z-axis
+    overlapZ = True if min(obstructor.top, toplace.top) > max(obstructor.bottom, toplace.bottom) else False
+
+    # Check possible insert along X-axis
+    if overlapY and overlapZ:
+        if possibleInserts[0] == 1 and obstructor.x < toplace.x:
+            possibleInserts[0] = 0
+            insertsSum -= 1
+            return insertsSum
+        elif possibleInserts[1] == 1 and obstructor.x > toplace.x:
+            possibleInserts[1] = 0
+            insertsSum -= 1
+            return insertsSum
+
+    # Check possible insert along Y-axis
+    if overlapX and overlapZ:
+        if possibleInserts[2] == 1 and obstructor.y < toplace.y:
+            possibleInserts[2] = 0
+            insertsSum -= 1
+            return insertsSum
+        elif possibleInserts[3] == 1 and obstructor.y > toplace.y:
+            possibleInserts[3] = 0
+            insertsSum -= 1
+            return insertsSum
+
+    # Check possible insert along Z-axis
+    if overlapX and overlapY and obstructor.z > toplace.z:
+        possibleInserts[4] = 0
+        insertsSum -= 1
+        return insertsSum
+
+    return insertsSum
 
 
 # This method verifies if it is possible to place the currentItem in a given position.
@@ -89,9 +109,11 @@ def fit (currentItem, pallet, packed, layersMap):
     stable = False
     itemSurface = currentItem.sizex * currentItem.sizey
 
-    # Verify if the currentItem placement could be obstructed by one of
-    # the already packed items.
-    # If yes a further constrol is made for every packedItem.
+    # Check if the currentItem can be obstructed by other items.
+    # In other words we check a priori if currentItem can be physically be
+    # placed with no need of further controls.
+    possibleInserts = [1,1,1,1,1]   # To use as boolean
+    insertsSum = 5
     obstructRisk = False if left == 0 or right == X or front == 0 or back == Y else True
 
     # Save the orderline corresponding to the currentItem
@@ -109,19 +131,14 @@ def fit (currentItem, pallet, packed, layersMap):
         # Check intersection with other already placed cases.
         if intersect(currentItem, packedItem):
             return False
-        #i = currentItem
-        #j = packedItem
-        #r = clib.intersect(i.right, i.left, i.bottom, i.top, i.front, i.back,
-        #                    j.right, j.left, j.bottom, j.top, j.front, j.back)
-                              #bool intersect (int iright, int ileft, int ibottom, int itop, int ifront, int iback,
-                #            int jright, int jleft, int jbottom, int jtop, int jfront, int jback);
 
-        #if r: return False
         # Check if packedItem prevents the placement of currentItem
-        #if obstructRisk and obstruct(currentItem, packedItem):
-        #    return False
+        if obstructRisk:
+            insertsSum = check_obstruction(currentItem, packedItem, possibleInserts, insertsSum)
+            if insertsSum == 0:
+                return False
 
-        #if not stable:
+
         # Check if the currentItem has physical support...
         if not stable and currentItem.z == 0:
             # If the currentItem is on the floor and has no intersections
