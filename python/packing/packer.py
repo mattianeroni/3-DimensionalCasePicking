@@ -1,10 +1,25 @@
+"""
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+This file is part of the implementation of an algorithm for solving the 
+3-dimensional case picking problem. A newly considered problem of operational
+research that combines the routing of pickers into the warehouse, with the 
+positioning of 3-dimensional items inside pallets (i.e., Pallet Loading Problem).
+The algorithm proposed and implemented comes from a collaboration between the 
+Department of Engineering at University of Parma (Parma, ITALY) and the 
+IN3 Computer Science Dept. at Universitat Oberta de Catalunya (Barcelona, SPAIN).
+Written by Mattia Neroni Ph.D., Eng. in July 2021.
+Author' contact: mattianeroni93@gmail.com
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+"""
 import operator
 import collections
 import functools
 from copy import deepcopy
 
 from case import rotate
-
+#-----------------------------------------------------------------------------------------
+# Tentative to speed up using C. It didn't work.
+# 
 #from cffi import FFI
 #
 #
@@ -16,6 +31,7 @@ from case import rotate
 #""")
 #
 #clib = ffi.dlopen("./packing/lib.so")
+#-----------------------------------------------------------------------------------------
 
 # Initialize the parameters of the algorithm
 # The minimum supporting surface to make the packing feasible
