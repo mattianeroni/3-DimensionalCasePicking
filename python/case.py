@@ -1,8 +1,20 @@
-from typing import Tuple
+"""
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+This file is part of the implementation of an algorithm for solving the 
+3-dimensional case picking problem. A newly considered problem of operational
+research that combines the routing of pickers into the warehouse, with the 
+positioning of 3-dimensional items inside pallets (i.e., Pallet Loading Problem).
 
+The algorithm proposed and implemented comes from a collaboration between the 
+Department of Engineering at University of Parma (Parma, ITALY) and the 
+IN3 Computer Science Dept. at Universitat Oberta de Catalunya (Barcelona, SPAIN).
 
+Written by Mattia Neroni Ph.D., Eng. in July 2021.
+Author' contact: mattianeroni93@gmail.com
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+"""
 
-def rotate (case : Case) -> None:
+def rotate (case):
     """
     Method used to rotate a case of 90° on the horizontal plan.
     :param case: <Case> The case to rotate.
@@ -44,10 +56,10 @@ class Case (object):
         self.busyCorners = [False, False, False]  # Used to speed up the DubePacker
         #self.frozen = None
 
-    def __repr__(self) -> str:
+    def __repr__(self):
         return f"Case(position={self.position}, size=({self.sizex}, {self.sizey}, {self.sizez}), rotated={self.rotated}, busyCorners={self.busyCorners})"
 
-    def __copy__ (self) -> Case:
+    def __copy__ (self):
         obj = Case.__new__(self.__class__)
         obj.__dict__.update(self.__dict__)
         obj.busyCorners = list(self.busyCorners)
@@ -55,10 +67,10 @@ class Case (object):
         return obj
 
     @property
-    def position (self) -> Tuple[int,int.int]:
+    def position (self):
         return self.x, self.y, self.z
 
-    def setPosition(self, pos : Tuple[int,int,int]) -> None:
+    def setPosition(self, pos):
         self.x, self.y, self.z = pos
 
     @property
