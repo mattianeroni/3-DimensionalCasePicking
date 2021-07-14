@@ -2,14 +2,16 @@ package main
 
 import (
 	"3DCasePicking/packing"
-	solver2 "3DCasePicking/solver"
+	solverModule "3DCasePicking/solver"
 	"3DCasePicking/warehouse"
 	"bufio"
 	"encoding/csv"
 	"fmt"
 	"math/rand"
 	"os"
+	"runtime"
 	"strconv"
+	"sync"
 	"time"
 )
 
@@ -18,31 +20,42 @@ func main () {
 	// Set random seed
 	rand.Seed(time.Now().Unix())
 
-	// Warehouse layout construction
-	G := warehouse.Graph()
-	dists := warehouse.DistanceMatrix(G)
+	runtime.GOMAXPROCS(4)
 
-	fmt.Println(len(dists[0]))
+	wg := sync.WaitGroup{}
 
-	// Problem import and creation
-	orderlines := readfile("./test/testproblem.csv",';')
-	edges := buildEdges(orderlines, dists)
+	for i := 0; i < 4; i++ {
+		wg.Add(1)
+		go func (wg *sync.WaitGroup) {
+			// Warehouse layout construction
+			G := warehouse.Graph()
+			dists := warehouse.DistanceMatrix(G)
 
-	// Initialize the solver
-	solver := solver2.NewSolver(orderlines, edges, dists)
+			// Problem import and creation
+			orderlines := readfile("./test/testproblem.csv", ';')
+			edges := buildEdges(orderlines, dists)
 
+			// Initialize the solver
+			solver := solverModule.NewSolver(orderlines, edges, dists)
 
-	// Packing
-	startTime := time.Now()
-	sol := solver.Heuristic(0.2)
-	endTime := time.Now()
-	fmt.Println("Computational time: ", endTime.Sub(startTime).Seconds())
-	fmt.Println("Number of pallets:", len(sol.Pallets))
-	fmt.Println("Cost :", sol.Cost)
-	fmt.Println()
+			// Packing
+			startTime := time.Now()
+			//sol := solver.Heuristic(0.2)
+			sol := solver.BiasedRandomisedAlgorithm(60)
+			endTime := time.Now()
+			fmt.Println("Computational time: ", endTime.Sub(startTime).Seconds())
+			fmt.Println("Number of pallets:", len(sol.Pallets))
+			fmt.Println("Cost :", sol.Cost)
+			fmt.Println("Iterations: ", solver.Iterations)
+			fmt.Println()
+			wg.Done()
+		}(&wg)
+	}
+
+	wg.Wait()
 
 	// Export results
-	writefile("./test/results.csv", sol.Pallets)
+	//writefile("./test/results.csv", sol.Pallets)
 }
 
 
