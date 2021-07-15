@@ -14,24 +14,10 @@ Author' contact: mattianeroni93@gmail.com
 import operator
 import collections
 import functools
-from copy import deepcopy
 
-from case import rotate
-#-----------------------------------------------------------------------------------------
-# Tentative to speed up using C. It didn't work.
-# 
-#from cffi import FFI
-#
-#
-#ffi = FFI()
-#ffi.cdef("""
-#
-#    bool intersect (int iright, int ileft, int ibottom, int itop, int ifront, int iback,
-#                    int jright, int jleft, int jbottom, int jtop, int jfront, int jback);
-#""")
-#
-#clib = ffi.dlopen("./packing/lib.so")
-#-----------------------------------------------------------------------------------------
+from .case import rotate
+from .pallet import HashableDict
+
 
 # Initialize the parameters of the algorithm
 # The minimum supporting surface to make the packing feasible
@@ -52,20 +38,21 @@ def getPosition (index, item):
     return d.get(index)
 
 
-
+# Deprecated -- Now it is controlled in the check_obstruction
+# method to avoid further controls.
 # This method checks the intersection between two cases.
-def intersect (iCase, jCase):
-    if min(iCase.right, jCase.right) > max(iCase.left, jCase.left) and \
-       min(iCase.back, jCase.back) > max(iCase.front, jCase.front) and \
-       min(iCase.top, jCase.top) > max(iCase.bottom, jCase.bottom):
-        return True
-
-    return False
+#def intersect (iCase, jCase):
+#    if min(iCase.right, jCase.right) > max(iCase.left, jCase.left) and \
+#       min(iCase.back, jCase.back) > max(iCase.front, jCase.front) and \
+#       min(iCase.top, jCase.top) > max(iCase.bottom, jCase.bottom):
+#        return True
+#
+#    return False
 
 
 # This method checks if the placement of a case is possible or is prevetend
 # by the presence on another one.
-def check_obstruction (toplace, obstructor, possibleInserts, insertsSum):
+def check_obstruction (toplace, obstructor, obstructionRisk, possibleInserts, insertsSum):
     # If there is an overlap along X-axis
     overlapX = True if min(obstructor.right, toplace.right) > max(obstructor.left, toplace.left) else False
     # If there is an overlap along Y-axis
@@ -73,35 +60,38 @@ def check_obstruction (toplace, obstructor, possibleInserts, insertsSum):
     # If there is an overlap along Z-axis
     overlapZ = True if min(obstructor.top, toplace.top) > max(obstructor.bottom, toplace.bottom) else False
 
+    # This is an intersection
+    if overlapX and overlapY and overlapZ:
+        return True, insertsSum
+
+    # In this case the obstruction controls are not needed
+    if not obstructionRisk:
+        return False, insertsSum
+
     # Check possible insert along X-axis
     if overlapY and overlapZ:
         if possibleInserts[0] == 1 and obstructor.x < toplace.x:
             possibleInserts[0] = 0
-            insertsSum -= 1
-            return insertsSum
+            return False, insertsSum - 1
         elif possibleInserts[1] == 1 and obstructor.x > toplace.x:
             possibleInserts[1] = 0
-            insertsSum -= 1
-            return insertsSum
+            return False, insertsSum - 1
 
     # Check possible insert along Y-axis
     if overlapX and overlapZ:
         if possibleInserts[2] == 1 and obstructor.y < toplace.y:
             possibleInserts[2] = 0
-            insertsSum -= 1
-            return insertsSum
+            return False, insertsSum - 1
         elif possibleInserts[3] == 1 and obstructor.y > toplace.y:
             possibleInserts[3] = 0
-            insertsSum -= 1
-            return insertsSum
+            return False, insertsSum - 1
 
     # Check possible insert along Z-axis
     if overlapX and overlapY and obstructor.z > toplace.z:
         possibleInserts[4] = 0
-        insertsSum -= 1
-        return insertsSum
+        return False, insertsSum - 1
 
-    return insertsSum
+    return False, insertsSum
 
 
 # This method verifies if it is possible to place the currentItem in a given position.
@@ -145,14 +135,14 @@ def fit (currentItem, pallet, packed, layersMap):
 
     for packedItem in packed:
         # Check intersection with other already placed cases.
-        if intersect(currentItem, packedItem):
-            return False
+        #if intersect(currentItem, packedItem):
+        #    return False
 
-        # Check if packedItem prevents the placement of currentItem
-        if obstructRisk:
-            insertsSum = check_obstruction(currentItem, packedItem, possibleInserts, insertsSum)
-            if insertsSum == 0:
-                return False
+        # Check if packedItem prevents the placement of currentItem.
+        # Check intersection with other already placed cases.
+        intersection, insertsSum = check_obstruction(currentItem, packedItem, obstructRisk, possibleInserts, insertsSum)
+        if intersection or insertsSum == 0:
+            return False
 
 
         # Check if the currentItem has physical support...
@@ -221,11 +211,10 @@ def dubePacker (pallet, hosted):
     # Copy pallet's data
     X, Y, Z = pallet.size
     packed = collections.deque([c.__copy__() for c in pallet.cases])
-    #cases = [c.__copy__() for c in cases]
 
     # Initialize the layers map in which it will be saved the layer
     # corresponding to each OrderLine
-    layersMap = dict(pallet.layersMap)
+    layersMap = HashableDict(pallet.layersMap)
 
     # Sort cases for decreasing strength
     sortedCases = sorted(hosted.cases, key=operator.attrgetter('strength'), reverse=True)
