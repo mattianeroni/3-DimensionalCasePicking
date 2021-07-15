@@ -49,7 +49,7 @@ for x in range(AISLES):
         if x > 0 and y in cross_points:
             G.add_edge(node_id, node_id - locations_per_longaisle, weight=LOCATION_X*2 + AISLE_SIZE)
         node_id += 1
-    current_pos[0] += LOCATION_X*2
+    current_pos[0] += LOCATION_X*2 + AISLE_SIZE
 
 # Plot the graph
 #nx.draw(G, pos=pos, with_labels=True, font_weight='bold')
