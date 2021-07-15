@@ -1,15 +1,8 @@
-
-import time
-import operator
-import random
 import multiprocessing
 
-
-import packing
 import warehouse
 import utils
 
-from pallet import Pallet
 from solver import Solver
 
 
@@ -24,10 +17,11 @@ def worker (id, return_dict, orderlines, edges, dists):
 
 
 if __name__ == "__main__":
+
 	orderlines = utils.readfile("../test/testproblem.csv")
 	dists = warehouse.distance_matrix
 	edges = utils.get_edges(orderlines, dists)
-
+	"""
 	manager = multiprocessing.Manager()
 	return_dict = manager.dict()
 	jobs = []
@@ -40,18 +34,19 @@ if __name__ == "__main__":
 		proc.join()
 
 	print(return_dict)
+	"""
 
 
 
-
-
-	#print(cost)
-	#for pallet in sol:
+	solver = Solver(orderlines, edges, dists)
+	sol, cost, iterations = solver.heuristic(0.2)
+	print(cost)
+	for pallet in sol:
 		#print("\n\n\n")
 		#for orderline in pallet.orderlines:
 		#	for case in orderline.cases:
 		#		print(case.__dict__)
-	#	utils.plot(pallet)
+		utils.plot(pallet)
 
 	#	#print(pallet.layersMap)
 

@@ -1,24 +1,25 @@
 import collections
 import operator
 import random
-import itertools
 import matplotlib.pyplot as plt
 import time
 
 from math import log
-#from copy import deepcopy
+
 
 from packing import dubePacker
-from pallet import Pallet, PALLET_MAX_WEIGHT, PALLET_MAX_VOLUME
-
-import utils
+from packing import Pallet, PALLET_MAX_WEIGHT, PALLET_MAX_VOLUME
 
 
-def _bra (array):
+
+GREEDY_BETA = 0.9999
+
+
+def _bra (array, beta):
     arr = list(array)
     L = len(array)
     for _ in range(L):
-        idx = int(log(random.random(), (1.0 - random.uniform(0.1,0.3)))) % len(arr)
+        idx = int(log(random.random(), 1.0 - beta)) % len(arr)
         yield arr.pop(idx)
 
 
@@ -38,12 +39,10 @@ class Solver (object):
         plt.show()
 
 
-    @staticmethod
-    def getSolution (edges, orderlines):
+    def heuristic (self, beta):
         # Build a dummy solution
-        dubePacker.cache_clear()
         palletsList = []
-        for orderline in orderlines:
+        for orderline in self.orderlines:
             cases = orderline.cases
             p = Pallet()
             done, packedCases, layersMap = dubePacker(p, orderline)
@@ -54,8 +53,12 @@ class Solver (object):
             orderline.pallet = p
             p.orderlines.add(orderline)
             palletsList.append(p)
+
+        # Generate the savings list
+        savingsList = sorted(self.edges, key=operator.attrgetter("saving"), reverse=True)
+
         # Merging process
-        for edge in _bra(edges):
+        for edge in _bra(savingsList, beta):
             # Picks an edge and read the pallet it could connect
             host = edge.origin.pallet
             hosted = edge.end.pallet
@@ -111,15 +114,13 @@ class Solver (object):
 
     def __call__ (self, maxtime):
         # Move useful data to the stack
-        getSolution = self.getSolution
+        heuristic = self.heuristic
         getCost = self.getCost
         dists = self.dists
         orderlines = self.orderlines
         save = self.history.append
-        # Generate the savings list
-        savingsList = sorted(self.edges, key=operator.attrgetter("saving"), reverse=True)
         # Generate a starting solution
-        best = getSolution(savingsList, orderlines)
+        best = heuristic(GREEDY_BETA)
         bestcost = getCost(best, dists)
         # Start a multistart iterated local search
         iterations = 0
@@ -127,7 +128,8 @@ class Solver (object):
         while time.time() - start < maxtime:
             iterations += 1
             # Generate a new solution
-            newsol = getSolution(savingsList, orderlines)
+            beta = random.uniform(0.1, 0.3)
+            newsol = heuristic(beta)
             newcost = getCost(newsol, dists)
 
             # Eventually update the best

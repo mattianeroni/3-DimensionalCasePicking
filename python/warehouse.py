@@ -47,7 +47,7 @@ for x in range(AISLES):
             current_pos[1] += weight
             G.add_edge(node_id, node_id - 1, weight=weight)
         if x > 0 and y in cross_points:
-            G.add_edge(node_id, node_id - locations_per_longaisle, weight=LOCATION_X*2)
+            G.add_edge(node_id, node_id - locations_per_longaisle, weight=LOCATION_X*2 + AISLE_SIZE)
         node_id += 1
     current_pos[0] += LOCATION_X*2
 
