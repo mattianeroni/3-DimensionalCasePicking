@@ -7,7 +7,7 @@ const LOCATION_X float64 = 1.0
 const LOCATION_Y float64 = 1.0
 const AISLES int = 20
 const CROSS_AISLES int = 1
-const AISLE_SIZE int = 3
+const AISLE_SIZE float64 = 3.0
 const CROSS_AISLE_SIZE float64 = 6.0
 const LOCATIONS int = 10
 
@@ -60,7 +60,7 @@ func Graph() GraphType {
 				if _, ok := G[nodeId]; !ok { G[nodeId] = make(map[int]float64) }
 				if _, ok := G[nodeId - locations_per_longaisle]; !ok { G[nodeId - locations_per_longaisle] = make(map[int]float64) }
 				// Calculate distances
-				weight = LOCATION_X * 2
+				weight = LOCATION_X * 2 + AISLE_SIZE
 				G[nodeId][nodeId - locations_per_longaisle] = weight
 				G[nodeId - locations_per_longaisle][nodeId] = weight
 			}
