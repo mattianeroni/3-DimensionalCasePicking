@@ -41,7 +41,7 @@ for x in range(AISLES):
     current_pos[1] = 0
     for y in range(locations_per_longaisle):
         G.add_node(node_id)
-        pos[node_id] = tuple(pos)
+        pos[node_id] = tuple(current_pos)
         if y > 0:
             weight = LOCATION_Y/2 + CROSS_AISLE_SIZE/2 if y in cross_points[1:-1] or (y - 1) in cross_points[1:-1] else LOCATION_Y
             current_pos[1] += weight
@@ -57,3 +57,4 @@ for x in range(AISLES):
 
 # Set the distance matrix
 distance_matrix = nxalg.floyd_warshall_numpy(G)
+print(distance_matrix)
