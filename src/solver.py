@@ -60,12 +60,14 @@ class Solver (object):
     An instance of this class represents a solver for the
     3-dimensional Case Picking problem.
     """
-    def __init__(self, orderlines, edges, dists):
+    def __init__(self, orderlines, edges, dists, pallet_size=(120,80,150), pallet_max_weight=450):
         """
         :attr orderlines: <tuple<OrderLine>> The set of orderlines for which
                         the problem must be solved.
         :attr edges: <tuple<Edge>> The edges connecting location to each other.
         :attr dists: <numpy.array> The matrix of distances between locations.
+        :attr pallet_size: <tuple<int>> Pallets size
+        :attr pallet_max_weight: <int> Pallets max weight
         :attr history: The evelution of the best solution during the iterations
                         of the algorithm.
 
@@ -75,6 +77,8 @@ class Solver (object):
         self.orderlines = orderlines
         self.edges = edges
         self.dists = dists
+        self.pallet_size = pallet_size
+        self.pallet_max_weight = pallet_max_weight
         self.history = collections.deque()
 
 
@@ -98,11 +102,13 @@ class Solver (object):
          :return: The resulting list of pallets.
 
         """
+        # Get pallets characteristics on stack
+        pallet_size, pallet_max_weight = self.pallet_size, self.pallet_max_weight
         # Build a dummy solution
         palletsList = []
         for orderline in self.orderlines:
             cases = orderline.cases
-            p = Pallet()
+            p = Pallet(pallet_size, pallet_max_weight)
             done, packedCases, layersMap = dubePacker(p, orderline)
             assert done == True
             p.cases, p.layersMap = packedCases, layersMap
@@ -125,10 +131,10 @@ class Solver (object):
             if host == hosted:
                 continue
             # Control the volumetric lower bound
-            if host.volume + hosted.volume > PALLET_MAX_VOLUME:
+            if host.volume + hosted.volume > host.maxVolume:
                 continue
             # Control the weight lower bound
-            if host.weight + hosted.weight > PALLET_MAX_WEIGHT:
+            if host.weight + hosted.weight > host.maxWeight:
                 continue
             # Try merging
             done, packedCases, layersMap = dubePacker(host, hosted)

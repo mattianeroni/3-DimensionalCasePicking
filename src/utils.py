@@ -85,8 +85,6 @@ def get_edges (orderlines, dists):
     return tuple(edges)
 
 
-
-
 def _cuboid_data2(o, size=(1,1,1)):
     """
     Taken from stackoverflow and never explored.
