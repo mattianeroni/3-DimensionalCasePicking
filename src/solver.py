@@ -162,6 +162,16 @@ class Solver (object):
 
     @staticmethod
     def getCost(solution, dists):
+        """
+        Given a solution (a set of pallets) and the matrix of distances, this method calculates
+        the cost of the solution -- i.e., the distance walked by the picker to collect all
+        cases and construct the pallets.
+
+        :param solution: The set of pallets
+        :param dists: The matrix of distances between locations
+        :return: The distance walked by the picker to construct all pallets.
+
+        """
         total = 0
         for pallet in solution:
             sort_orderlines = tuple(dict(sorted(pallet.layersMap.items(), key=operator.itemgetter(1))).keys())
