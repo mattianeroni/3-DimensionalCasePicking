@@ -1,12 +1,15 @@
 """
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-This file is part of the implementation of an algorithm for solving the 
+This file is part of the implementation of an algorithm for solving the
 3-dimensional case picking problem. A newly considered problem of operational
-research that combines the routing of pickers into the warehouse, with the 
+research that combines the routing of pickers into the warehouse, with the
 positioning of 3-dimensional items inside pallets (i.e., Pallet Loading Problem).
-The algorithm proposed and implemented comes from a collaboration between the 
-Department of Engineering at University of Parma (Parma, ITALY) and the 
+
+The algorithm proposed and implemented comes from a collaboration between the
+Department of Engineering at University of Parma (Parma, ITALY) and the
 IN3 Computer Science Dept. at Universitat Oberta de Catalunya (Barcelona, SPAIN).
+
+
 Written by Mattia Neroni Ph.D., Eng. in July 2021.
 Author' contact: mattianeroni93@gmail.com
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -30,9 +33,9 @@ warnings.filterwarnings("ignore")
 
 def readfile (filename, delimiter=";"):
     """
-    Read the .csv file with the problem to solve and translates it 
+    Read the .csv file with the problem to solve and translates it
     into orderlines and cases.
-    
+
     """
     file = pd.read_csv(filename, delimiter=delimiter)
     orderlines = []
@@ -53,7 +56,7 @@ def get_edges (orderlines, dists):
     """
     Given a set of orderlines (each of them with an associated storage location)
     and a matrix of distances, this method returns the set of edges to consider.
-    
+
     """
     # Generate for each OrderLine the edges connecting its location
     # to the depot.
@@ -87,7 +90,7 @@ def get_edges (orderlines, dists):
 def _cuboid_data2(o, size=(1,1,1)):
     """
     Taken from stackoverflow and never explored.
-    
+
     """
     X = [[[0, 1, 0], [0, 0, 0], [1, 0, 0], [1, 1, 0]],
          [[0, 0, 0], [0, 0, 1], [1, 0, 1], [1, 0, 0]],
@@ -104,7 +107,7 @@ def _cuboid_data2(o, size=(1,1,1)):
 def _plotCubeAt2(positions,sizes=None,colors=None, **kwargs):
     """
     Taken from stackoverflow and never explored.
-    
+
     """
     if not isinstance(colors,(list,np.ndarray)):
         colors=["C0"]*len(positions)
@@ -120,7 +123,7 @@ def _plotCubeAt2(positions,sizes=None,colors=None, **kwargs):
 def plot (pallet):
     """
     This method provides a very nice 3-dimensional view of a pallet.
-    
+
     """
     all_colors = [k for k,v in pltc.cnames.items()]
 
