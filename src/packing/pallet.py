@@ -15,14 +15,13 @@ Author' contact: mattianeroni93@gmail.com
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 """
 import collections
+import functools
+import operator
 
-
-# Pallets characteristics
-PALLET_SIZE = (120, 80, 150)
-PALLET_MAX_WEIGHT = 450
-
-# Define the maximum volume capacity of a pallet
-PALLET_MAX_VOLUME = PALLET_SIZE[0] * PALLET_SIZE[1] * PALLET_SIZE[2]
+# Standard pallets' characteristics
+#PALLET_SIZE = (120, 80, 150)
+#PALLET_MAX_WEIGHT = 450
+#PALLET_MAX_VOLUME = PALLET_SIZE[0] * PALLET_SIZE[1] * PALLET_SIZE[2]
 
 
 
@@ -40,7 +39,7 @@ class Pallet (object):
     An instance of this class represents a pallet.
     """
 
-    def __init__ (self):
+    def __init__ (self, size, max_weight):
         """
         :attr layersMap: <dict<OrderLine,int>> hashmap that keeps track of the layer
                         that each orderline occupies into the pallet.
@@ -48,8 +47,9 @@ class Pallet (object):
                         locations can be visited.
         :attr orderlines: <set<OrderLine>> the set of orderlines kept into this pallet.
         """
-        self.size = PALLET_SIZE
-        self.maxWeight = PALLET_MAX_WEIGHT
+        self.size = size
+        self.maxWeight = max_weight
+        self.maxVolume = functools.reduce(operator.mul, size, 1)
         self.cases = collections.deque()
         self.layersMap = HashableDict()
         self.orderlines = set()
