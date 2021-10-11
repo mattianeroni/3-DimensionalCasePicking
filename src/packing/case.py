@@ -1,13 +1,14 @@
 """
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-This file is part of the implementation of an algorithm for solving the 
+This file is part of the implementation of an algorithm for solving the
 3-dimensional case picking problem. A newly considered problem of operational
-research that combines the routing of pickers into the warehouse, with the 
+research that combines the routing of pickers into the warehouse, with the
 positioning of 3-dimensional items inside pallets (i.e., Pallet Loading Problem).
 
-The algorithm proposed and implemented comes from a collaboration between the 
-Department of Engineering at University of Parma (Parma, ITALY) and the 
+The algorithm proposed and implemented comes from a collaboration between the
+Department of Engineering at University of Parma (Parma, ITALY) and the
 IN3 Computer Science Dept. at Universitat Oberta de Catalunya (Barcelona, SPAIN).
+
 
 Written by Mattia Neroni Ph.D., Eng. in July 2021.
 Author' contact: mattianeroni93@gmail.com
@@ -25,15 +26,13 @@ def rotate (case):
 
 class Case (object):
     """
-    An instance of this class represent one of the rectangular-shaped 3-dimensional cases 
+    An instance of this class represent one of the rectangular-shaped 3-dimensional cases
     to place into the pallets.
-    
     """
-
     def __init__ (self, orderline, code, sizex, sizey, sizez, weight, strength):
         """
         Constructor.
-        
+
         :param orderline: <OrderLine> the orderline the case belongs to
         :param code: <char> the code of the case (the type of product it contains)
         :param sizex, sizey, sizez: <int> the dimensions of the case
@@ -61,7 +60,7 @@ class Case (object):
         obj = Case.__new__(self.__class__)
         obj.__dict__.update(self.__dict__)
         obj.busyCorners = list(self.busyCorners)
-        obj.orderline = self.orderline           # maybe not necessary
+        #obj.orderline = self.orderline           # maybe not necessary
         return obj
 
     @property

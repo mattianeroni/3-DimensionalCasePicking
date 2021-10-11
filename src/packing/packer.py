@@ -1,12 +1,15 @@
 """
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-This file is part of the implementation of an algorithm for solving the 
+This file is part of the implementation of an algorithm for solving the
 3-dimensional case picking problem. A newly considered problem of operational
-research that combines the routing of pickers into the warehouse, with the 
+research that combines the routing of pickers into the warehouse, with the
 positioning of 3-dimensional items inside pallets (i.e., Pallet Loading Problem).
-The algorithm proposed and implemented comes from a collaboration between the 
-Department of Engineering at University of Parma (Parma, ITALY) and the 
+
+The algorithm proposed and implemented comes from a collaboration between the
+Department of Engineering at University of Parma (Parma, ITALY) and the
 IN3 Computer Science Dept. at Universitat Oberta de Catalunya (Barcelona, SPAIN).
+
+
 Written by Mattia Neroni Ph.D., Eng. in July 2021.
 Author' contact: mattianeroni93@gmail.com
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -26,10 +29,13 @@ MIN_STABLE_SURFACE = 0.7
 MIN_STABLE_CORNERS = 3
 
 
-# Given an index and the already packed case around which
-# we are supposed to try a placement, this method returns
-# the corresponding position.
+
 def getPosition (index, item):
+    """
+     Given an index and the already packed case around which
+     we are supposed to try a placement, this method returns
+     the corresponding position.
+    """
     d = {
         0 : (item.x + item.sizex, item.y, item.z),
         1 : (item.x, item.y + item.sizey, item.z),
@@ -50,9 +56,32 @@ def getPosition (index, item):
 #    return False
 
 
-# This method checks if the placement of a case is possible or is prevetend
-# by the presence on another one.
+
 def check_obstruction (toplace, obstructor, obstructionRisk, possibleInserts, insertsSum):
+    """
+     This method checks if the placement of a case is possible or is prevetend
+     by the presence on another one.
+     During the placement is also verified the physical possibility to place
+     the case in that position by reaching the position from each of five directions.
+
+     :param toplace: <Case> The case for which the placement must be verified.
+     :param obstructor: <Case> The case that may obstuct the placement.
+     :param obstructionRisk: <bool> Boolean variable True only if the case to place
+                            is not on the side of the pallet. It avoids additional
+                            controls when not necessary.
+    :param possibleInserts: <list> A list of Boolean elements (0 or 1). If at leas one of these
+                            elements is 1 after checking all the possible obstructors, the
+                            case to place can be placed in the given position.
+    :param insertsSum: <int> Simply keeps track of still possible inserts. At the beginning it
+                        is equal to 5, if it is higher than 0 after checking all the possible
+                        obstructors, the placement of case to place in the given position is
+                        allowed.
+
+    :return: <tuple> First element is True if there is an instersection and False otherwise,
+            while the second return teh insertsSum value that say if the physical placement
+            made by an operator is possible.
+
+    """
     # If there is an overlap along X-axis
     overlapX = True if min(obstructor.right, toplace.right) > max(obstructor.left, toplace.left) else False
     # If there is an overlap along Y-axis
@@ -65,6 +94,8 @@ def check_obstruction (toplace, obstructor, obstructionRisk, possibleInserts, in
         return True, insertsSum
 
     # In this case the obstruction controls are not needed
+    # NOTE: this check is here and not outside this function, because is important
+    # to verify in any case that there is no intersection (see previous check).
     if not obstructionRisk:
         return False, insertsSum
 
@@ -94,11 +125,23 @@ def check_obstruction (toplace, obstructor, obstructionRisk, possibleInserts, in
     return False, insertsSum
 
 
-# This method verifies if it is possible to place the currentItem in a given position.
-# The method needs to iterate all the list of already packed items to avoid overlaps
-# or intersections.
-# It also verifies the stability of cases, the vertical support, and the strength constraint.
+
 def fit (currentItem, pallet, packed, layersMap):
+    """
+     This method verifies if it is possible to place the currentItem in a given position.
+     The method needs to iterate all the list of already packed items to avoid overlaps
+     or intersections.
+     It also verifies the stability of cases, the vertical support, and the strength constraint.
+
+     :param currentItem: <Case> The case to place
+     :param pallet: <Pallet> The pallet (only used to get it size)
+     :param packed: <list<Case>> The set of already packed cases in that pallet
+     :param layersMap: <dict> A copy of the layersMap of the pallet used to keep track
+                        of orderlines level (i.e., order in which they can be placed).
+
+     :return: True if the placement is possible and False otherwise.
+
+    """
     left, right = currentItem.left, currentItem.right
     front, back = currentItem.front, currentItem.back
     # Check the pallet borders
@@ -202,12 +245,32 @@ def fit (currentItem, pallet, packed, layersMap):
 
 
 
-# Algorithm described in the following paper.
-# Dube, E., Kanavathy, L. R., & Woodview, P. (2006). Optimizing Three-Dimensional
-# Bin Packing Through Simulation. In Sixth IASTED International Conference Modelling,
-# Simulation, and Optimization.
+
 @functools.lru_cache(maxsize=32)
 def dubePacker (pallet, hosted):
+    """
+     The algorithm implemented in this method is a modified version of the one proposed by:
+     Dube, E., Kanavathy, L. R., & Woodview, P. (2006). Optimizing Three-Dimensional
+     Bin Packing Through Simulation. In Sixth IASTED International Conference Modelling,
+     Simulation, and Optimization.
+
+     The original version did not consider the aspect that are here implemented and reported:
+        - Stability issues
+        - Portability and strength issues
+        - Actual possibility to place cases in a given position (obstructions during the
+          placement)
+
+
+     :param pallet: <Pallet> The pallet in which cases must be placed.
+     :param hosted: <list<Case>> The set of cases to place.
+
+     :return: <tuple> The first element is True if the packing has been successful
+                and False otherwise, the second returns the set of packed items with
+                the attributes and characteristichs they assumed during the packing
+                (note at the beginning a copy of hosted cases is made), while, the
+                third element is the new layersMap of the pallet.
+
+    """
     # Copy pallet's data
     X, Y, Z = pallet.size
     packed = collections.deque([c.__copy__() for c in pallet.cases])
