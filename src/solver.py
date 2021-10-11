@@ -1,21 +1,52 @@
+"""
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+This file is part of the implementation of an algorithm for solving the
+3-dimensional case picking problem. A newly considered problem of operational
+research that combines the routing of pickers into the warehouse, with the
+positioning of 3-dimensional items inside pallets (i.e., Pallet Loading Problem).
+
+The algorithm proposed and implemented comes from a collaboration between the
+Department of Engineering at University of Parma (Parma, ITALY) and the
+IN3 Computer Science Dept. at Universitat Oberta de Catalunya (Barcelona, SPAIN).
+
+
+Written by Mattia Neroni Ph.D., Eng. in July 2021.
+Author' contact: mattianeroni93@gmail.com
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+"""
 import collections
 import operator
 import random
 import matplotlib.pyplot as plt
 import time
-
 from math import log
-
 
 from packing import dubePacker
 from packing import Pallet, PALLET_MAX_WEIGHT, PALLET_MAX_VOLUME
 
 
-
+# Convention value used to obtain a greedy behaviour from the
+# Biased Randomised Algorithm implemented below.
+# Theorically speaking the value should be as close as possible to 1.
+# We have reason to believe an approximation to four decimals should
+# be accurate enough.
 GREEDY_BETA = 0.9999
 
 
 def _bra (array, beta):
+    """
+    This method carry out a biased-randomised selection over a certain list.
+    The selection is based on a quasi-geometric function:
+
+                    f(x) = (1 - beta) ^ x
+
+    and it therefore prioritise the first elements in list.
+
+    :param array: <list> The set of options already sorted from the best to the worst.
+    :param beta: <float> The parameter of the quasi-geometric distribution.
+    :return: The element picked at each iteration.
+
+    """
     arr = list(array)
     L = len(array)
     for _ in range(L):
@@ -25,7 +56,22 @@ def _bra (array, beta):
 
 
 class Solver (object):
+    """
+    An instance of this class represents a solver for the
+    3-dimensional Case Picking problem.
+    """
     def __init__(self, orderlines, edges, dists):
+        """
+        :attr orderlines: <tuple<OrderLine>> The set of orderlines for which
+                        the problem must be solved.
+        :attr edges: <tuple<Edge>> The edges connecting location to each other.
+        :attr dists: <numpy.array> The matrix of distances between locations.
+        :attr history: The evelution of the best solution during the iterations
+                        of the algorithm.
+
+        NOTE that to each OrderLine is supposed to be associated one and only
+        one location.
+        """
         self.orderlines = orderlines
         self.edges = edges
         self.dists = dists
@@ -33,6 +79,10 @@ class Solver (object):
 
 
     def plot (self):
+        """
+        This method plots the evolution of the current best solution during the
+        execution of the algorithm.
+        """
         plt.plot(self.history)
         plt.xlabel("Iterations")
         plt.ylabel("Total Distance")
@@ -40,6 +90,14 @@ class Solver (object):
 
 
     def heuristic (self, beta):
+        """
+         This method provides a single solution to the problem.
+
+         :param beta: <float> The parameter of the quasi-geometric distribution
+                    used by the biased randomised selection.
+         :return: The resulting list of pallets.
+
+        """
         # Build a dummy solution
         palletsList = []
         for orderline in self.orderlines:
@@ -113,6 +171,19 @@ class Solver (object):
 
 
     def __call__ (self, maxtime):
+        """
+         This method executes many times the heuristic method generating many
+         different solutions until the available time (i.e., maxtime) is not exceeded.
+         Every time a new solution is generated, it is compared with the best found so
+         far, and, if better, the best solution is temporarily updated.
+
+         :param maxtime: <time>/<float> The available computational time.
+         :return: <tuple> It returns (i) the best solution found (a set of pallets),
+                    (ii) the cost of the best solution (the distance made by the picker),
+                    (iii) the number of solutions explored by the algorithm in the
+                    available computational time.
+
+        """
         # Move useful data to the stack
         heuristic = self.heuristic
         getCost = self.getCost
