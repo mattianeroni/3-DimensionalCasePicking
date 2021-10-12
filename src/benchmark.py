@@ -18,6 +18,7 @@ import dataclasses
 import itertools
 import numpy as np
 from math import pow, sqrt
+from typing import Any
 
 from packing import OrderLine, Case
 
@@ -38,7 +39,15 @@ class Problem (object):
     An instance of this class represents a 3-Load Capacitated Vehicle Routing
     Problem (3L-CVRP) to solve.
     """
-    pass
+    name : str
+    customers : int
+    vehicles : int
+    items : int
+    pallet_max_weight : int
+    pallet_size : tuple
+    nodes : tuple
+    orderlines : tuple
+    dists : Any # numpy array
 
 
 
@@ -49,7 +58,7 @@ def _distance_matrix(nodes):
     by using Euclidean distance.
     """
     def euclidean (n1, n2):
-        return sqrt(pow(n1[0] - n2[0], 2) + pow(n1[1] - n2[1], 2))
+        return int(sqrt(pow(n1[0] - n2[0], 2) + pow(n1[1] - n2[1], 2)))
 
     L = len(nodes)
     dists = np.zeros((L,L))
@@ -82,13 +91,19 @@ def read_benchmark (file):
             if i > 8 + customers + 2:
                 # Get the number from the file
                 id, n, *data = tuple(map(int, " ".join(row.split()).split(" ")))
+                # Create new orderline for each couple customer-code
+                # NOTE the proposed algorithm is designed to work in a context in which
+                # each orderline require one and only one code.
                 orderline = OrderLine(code=id, location=id)
+                # Generate cases to place into the pallets / vehicles
                 cases = []
                 for case_id in range(n):
                     pos = 4 * case_id
-                    cases.append(Case(orderline, id, data[2], data[0], data[1], weight=0, strength=data[3]))
+                    cases.append(Case(orderline, id, data[pos + 1], data[pos + 2], data[pos + 0], weight=0, strength=data[pos + 3]))
                 orderline.cases = cases
                 orderlines.append(orderline)
+        # Return the problem with the characteristics read from the file
+        return Problem(name, customers, vehicles, items, max_weight, (X,Y,Z), tuple(nodes), tuple(orderlines), _distance_matrix(nodes))
 
 
 
@@ -100,4 +115,5 @@ def read_benchmark (file):
 
 
 if __name__ == "__main__":
-    read_benchmark("../benchmarks/3l_cvrp24.txt")
+    #problem = read_benchmark("../benchmarks/3l_cvrp24.txt")
+    #print(problem)
