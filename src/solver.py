@@ -22,7 +22,8 @@ import time
 from math import log
 
 from packing import dubePacker
-from packing import Pallet, PALLET_MAX_WEIGHT, PALLET_MAX_VOLUME
+from packing import Pallet
+import utils
 
 
 # Convention value used to obtain a greedy behaviour from the
@@ -110,8 +111,15 @@ class Solver (object):
             cases = orderline.cases
             p = Pallet(pallet_size, pallet_max_weight)
             done, packedCases, layersMap = dubePacker(p, orderline)
-            assert done == True
+            #assert done == True
             p.cases, p.layersMap = packedCases, layersMap
+
+            if not done:
+                for case in orderline.cases:
+                    print(f"({case.sizex},{case.sizey})")
+                utils.plot(p)
+
+
             p.weight = orderline.weight
             p.volume = orderline.volume
             orderline.pallet = p

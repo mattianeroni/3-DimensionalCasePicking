@@ -15,6 +15,7 @@ Author' contact: mattianeroni93@gmail.com
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 """
 import dataclasses
+import collections
 import itertools
 import numpy as np
 from math import pow, sqrt
@@ -65,16 +66,20 @@ def _distance_matrix(nodes):
     for i, j in itertools.permutations(range(L), 2):
         dists[i, j] = euclidean(nodes[i], nodes[j])
 
-    return dists
+    return dists.astype("int32")
 
 
 def read_benchmark (file):
+    """
+    This method translates a benchmark file into a standardised
+    problem instance with all the attributes needed.
+    """
     name, customers, vehicles, items = 0, 0, 0, 0
     orderlines, nodes = [], []
     with open(file, "r") as file:
         for i, row in enumerate(file):
             # Read instance name
-            if i == 0: name = row.split(" ")[1]
+            if i == 0: name = row.split(" ")[1].replace(".dat\n","").replace(".DAT\n","")
             # Read number of customers, vehicles, and items
             if i == 2: customers = int(row.split(" --- ")[0])
             if i == 3: vehicles = int(row.split(" --- ")[0])
@@ -94,26 +99,16 @@ def read_benchmark (file):
                 # Create new orderline for each couple customer-code
                 # NOTE the proposed algorithm is designed to work in a context in which
                 # each orderline require one and only one code.
-                orderline = OrderLine(code=id, location=id)
+                #orderline = OrderLine(code=str(id), location=id)
                 # Generate cases to place into the pallets / vehicles
-                cases = []
+                #cases = collections.deque()
                 for case_id in range(n):
                     pos = 4 * case_id
-                    cases.append(Case(orderline, id, data[pos + 1], data[pos + 2], data[pos + 0], weight=0, strength=data[pos + 3]))
-                orderline.cases = cases
-                orderlines.append(orderline)
+                    orderline = OrderLine(code = str(id), location = id)
+                    case = Case(orderline, str(id), data[pos + 1], data[pos + 2], data[pos + 0], weight=0, strength=data[pos + 3])
+                    orderline.cases = collections.deque([case])
+                    orderline.weight = case.weight
+                    orderline.volume = case.sizex * case.sizey * case.sizez
+                    orderlines.append(orderline)
         # Return the problem with the characteristics read from the file
         return Problem(name, customers, vehicles, items, max_weight, (X,Y,Z), tuple(nodes), tuple(orderlines), _distance_matrix(nodes))
-
-
-
-
-
-
-
-
-
-
-if __name__ == "__main__":
-    #problem = read_benchmark("../benchmarks/3l_cvrp24.txt")
-    #print(problem)

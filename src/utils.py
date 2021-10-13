@@ -45,7 +45,7 @@ def readfile (filename, delimiter=";"):
                      for i in range(line["#Cases"]))
         orderline.cases = cases
         orderline.weight = sum(c.weight for c in cases)
-        orderline.volumne = sum(c.x * c.y * c.z for c in cases)
+        orderline.volume = sum(c.sizex * c.sizey * c.sizez for c in cases)
         orderlines.append(orderline)
 
     return tuple(orderlines)
