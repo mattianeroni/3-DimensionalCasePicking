@@ -54,7 +54,8 @@ class Case (object):
         self.busyCorners = [False, False, False]  # Used to speed up the DubePacker
 
     def __repr__(self):
-        return f"Case(position={self.position}, size=({self.sizex}, {self.sizey}, {self.sizez}), rotated={self.rotated}, busyCorners={self.busyCorners})"
+        return f"Case(position={self.position}, size=({self.sizex}, {self.sizey}, {self.sizez})," \
+                 f" weight={self.weight}, strength={self.strength}, rotated={self.rotated}, busyCorners={self.busyCorners})"
 
     def __copy__ (self):
         obj = Case.__new__(self.__class__)
