@@ -7,7 +7,7 @@ import utils
 import benchmark
 
 from solver import Solver, GREEDY_BETA
-
+from packing import PALLET_SIZE, PALLET_MAX_WEIGHT
 
 
 def worker (id, return_dict, orderlines, edges, dists):
@@ -23,7 +23,7 @@ def worker (id, return_dict, orderlines, edges, dists):
 
 
 if __name__ == "__main__":
-	"""
+
 	orderlines = utils.readfile("../test/testproblem.csv")
 	dists = warehouse.distance_matrix
 	edges = utils.get_edges(orderlines, dists)
@@ -32,9 +32,10 @@ if __name__ == "__main__":
 	sol = solver.heuristic(GREEDY_BETA)
 	cost = solver.getCost(sol, dists)
 
-	print(len(sol), cost)
+	#print(len(sol), cost)
 	for i in sol:
 		utils.plot(i)
+
 	"""
 	with open(f"../Results.csv", "w") as output_file:
 		for file in benchmark.BENCHMARKS:
@@ -50,12 +51,7 @@ if __name__ == "__main__":
 			#sol, cost, _ = solver(60)
 
 			output_file.write(f"{problem.name}, {problem.customers}, {problem.items}, {problem.vehicles}, {len(sol)}, {cost} \n")
-
-			#for pallet in sol:
-			#	utils.plot(pallet)
-
-
-
+	"""
 
 	# Use the following for multiprocessing
 	# ---------------------------------------------------------------------------------------------------
