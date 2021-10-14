@@ -23,36 +23,33 @@ def worker (id, return_dict, orderlines, edges, dists):
 
 
 if __name__ == "__main__":
+	"""
+	orderlines = utils.readfile("../test/testproblem.csv")
+	dists = warehouse.distance_matrix
+	edges = utils.get_edges(orderlines, dists)
 
-	#orderlines = utils.readfile("../test/testproblem.csv")
-	#dists = warehouse.distance_matrix
-	#edges = utils.get_edges(orderlines, dists)
+	solver = Solver(orderlines, edges, dists, (120, 80, 150), 450)
+	sol = solver.heuristic(GREEDY_BETA)
+	cost = solver.getCost(sol, dists)
 
+	print(len(sol), cost)
+	for i in sol:
+		utils.plot(i)
+	"""
 	with open(f"../Results.csv", "w") as output_file:
 		for file in benchmark.BENCHMARKS:
 			problem = benchmark.read_benchmark(f"../benchmarks/{file}")
 
-			pallet_size = problem.pallet_size
-			pallet_volume = functools.reduce(operator.mul, pallet_size, 1)
-			pallet_area = functools.reduce(operator.mul, pallet_size[:2], 1)
-			#print(f"Volume : {pallet_volume} - Area : {pallet_area} - MaxSize : {max(pallet_size[0], pallet_size[1])} - Size : {pallet_size}")
 
-			#maxX = max(case.sizex for orderline in problem.orderlines for case in orderline.cases)
-			#maxY = max(case.sizey for orderline in problem.orderlines for case in orderline.cases)
-			#print(max(maxX, maxY))
-
-			#continue
-
-			orderlines = problem.orderlines
-			dists = problem.dists
+			orderlines, dists, pallet_size, max_weight = problem.orderlines, problem.dists, problem.pallet_size, problem.pallet_max_weight
 			edges = utils.get_edges(orderlines, dists)
 
-			solver = Solver(orderlines, edges, dists, problem.pallet_size, problem.pallet_max_weight)
-			#sol = solver.heuristic(GREEDY_BETA)
-			#cost = solver.getCost(sol, dists)
-			sol, cost, _ = solver(60)
-			
-			output_file.write(f"{problem.name}, {problem.customers}, {problem.vehicles}, {len(sol)}, {cost} \n")
+			solver = Solver(orderlines, edges, dists, pallet_size, max_weight)
+			sol = solver.heuristic(GREEDY_BETA)
+			cost = solver.getCost(sol, dists)
+			#sol, cost, _ = solver(60)
+
+			output_file.write(f"{problem.name}, {problem.customers}, {problem.items}, {problem.vehicles}, {len(sol)}, {cost} \n")
 
 			#for pallet in sol:
 			#	utils.plot(pallet)

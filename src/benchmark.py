@@ -104,9 +104,10 @@ def read_benchmark (file):
                 #cases = collections.deque()
                 for case_id in range(n):
                     pos = 4 * case_id
-                    orderline = OrderLine(code = str(id), location = id)
-                    case = Case(orderline, str(id), data[pos + 1], data[pos + 2], data[pos + 0], weight=0, strength=data[pos + 3])
-                    orderline.cases = collections.deque([case])
+                    code = f"{str(id)}.{str(case_id)}"
+                    orderline = OrderLine(code = code, location = id)
+                    case = Case(orderline, code, data[pos + 1], data[pos + 2], data[pos + 0], weight=0, strength=10) #data[pos + 3])
+                    orderline.cases = (case,)
                     orderline.weight = case.weight
                     orderline.volume = case.sizex * case.sizey * case.sizez
                     orderlines.append(orderline)
