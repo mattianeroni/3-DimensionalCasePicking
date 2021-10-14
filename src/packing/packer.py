@@ -26,7 +26,7 @@ from .pallet import HashableDict
 # The minimum supporting surface to make the packing feasible
 # The minimum number of stable corners to make the packing feasible
 MIN_STABLE_SURFACE = 0.0
-MIN_STABLE_CORNERS = 0
+MIN_STABLE_CORNERS = 1
 
 
 
@@ -158,6 +158,7 @@ def fit (currentItem, pallet, packed, layersMap):
     stable = False
     itemSurface = currentItem.sizex * currentItem.sizey
 
+
     # Check if the currentItem can be obstructed by other items.
     # In other words we check a priori if currentItem can be physically be
     # placed with no need of further controls.
@@ -232,7 +233,7 @@ def fit (currentItem, pallet, packed, layersMap):
                             layersMap[orderline] = layersMap[packedOrderLine] + 1
 
                     # If one of the stability conditions is met.
-                    if stableSurface / itemSurface > MIN_STABLE_SURFACE or sumStables >= MIN_STABLE_CORNERS:
+                    if stableSurface / itemSurface >= MIN_STABLE_SURFACE or sumStables >= MIN_STABLE_CORNERS:
                         stable = True
     # At this point there are no intersections, if the currentItem is stable
     # a positive response is returned.
@@ -286,12 +287,12 @@ def dubePacker (pallet, hosted):
     for currentItem in sortedCases:
         currentItem = currentItem.__copy__()
         currentItem.busyCorners = [False, False, False]
+        currentItem.canHold = currentItem.strength
 
         if len(packed) == 0:
             # Place the first item
             pivot = (0,0,0)
             currentItem.setPosition(pivot)
-            layersMap[currentItem.orderline] = 0
 
             # Interrupt immediately if the packing is already not feasible
             if currentItem.top > Z:
@@ -301,7 +302,8 @@ def dubePacker (pallet, hosted):
                 rotate(currentItem)
                 if currentItem.right > X or currentItem.back > Y:
                     return False, packed, layersMap
-            # Add item to the list of packed
+            # Add item to the list of packed and update the layers map
+            layersMap[currentItem.orderline] = 0
             packed.append(currentItem)
         else:
             toPack = True

@@ -61,7 +61,6 @@ class Case (object):
         obj = Case.__new__(self.__class__)
         obj.__dict__.update(self.__dict__)
         obj.busyCorners = list(self.busyCorners)
-        #obj.orderline = self.orderline           # maybe not necessary
         return obj
 
     @property
