@@ -168,6 +168,8 @@ def fit (currentItem, pallet, packed, layersMap):
 
     # Save the orderline corresponding to the currentItem
     orderline = currentItem.orderline
+    # Initialise the 'layer' associated to the currentItem in a local variable
+    layer = clayer if (clayer := layersMap.get(orderline)) else 0
 
     # Identify the corners that need to be supported
     footholds = [
@@ -198,8 +200,7 @@ def fit (currentItem, pallet, packed, layersMap):
             sumStables = 4
             stable = True
             # Update the layer of the currentItem
-            if layersMap.get(orderline) is None:
-                layersMap[orderline] = 0
+            layer = max(layer, 0)
 
         elif currentItem.z == packedItem.top:
             # If currentItem will lay on another case...
@@ -212,6 +213,8 @@ def fit (currentItem, pallet, packed, layersMap):
 
                 # Check the strength and the number of cases the currentItem
                 # will be able to hold above.
+                # If it is not placed on top of any other case, this value is already initialised
+                # equal to the currentItem strength.
                 currentItem.canHold = max(0, min(currentItem.strength, packedItem.canHold - 1))
 
                 if not stable:
@@ -227,17 +230,15 @@ def fit (currentItem, pallet, packed, layersMap):
                     # Define the layer of the OrderLine corresponding to currentItem.
                     if packedItem.code != currentItem.code:
                         packedOrderLine = packedItem.orderline
-                        if (layer := layersMap.get(orderline)) is not None:
-                            layersMap[orderline] = max(layer, layersMap[packedOrderLine] + 1)
-                        else:
-                            layersMap[orderline] = layersMap[packedOrderLine] + 1
+                        layer = max(layer, layersMap[packedOrderLine] + 1)
 
                     # If one of the stability conditions is met.
                     if stableSurface / itemSurface >= MIN_STABLE_SURFACE or sumStables >= MIN_STABLE_CORNERS:
                         stable = True
     # At this point there are no intersections, if the currentItem is stable
-    # a positive response is returned.
+    # a positive response is returned after setting the layer of the currentItem.
     if stable:
+        layersMap[orderline] = layer
         return True
     # Arrived at this point, a positive response should have been returned.
     # If it is not, it mean that there is no intersection between currentItem

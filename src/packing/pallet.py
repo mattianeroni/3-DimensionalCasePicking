@@ -19,9 +19,8 @@ import functools
 import operator
 
 # Standard pallets' characteristics
-#PALLET_SIZE = (120, 80, 150)
-#PALLET_MAX_WEIGHT = 450
-#PALLET_MAX_VOLUME = PALLET_SIZE[0] * PALLET_SIZE[1] * PALLET_SIZE[2]
+PALLET_SIZE = (120, 80, 150)
+PALLET_MAX_WEIGHT = 450
 
 
 
