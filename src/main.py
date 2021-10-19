@@ -23,7 +23,7 @@ def worker (id, return_dict, orderlines, edges, dists):
 
 
 if __name__ == "__main__":
-
+	"""
 	orderlines = utils.readfile("../test/testproblem.csv")
 	dists = warehouse.distance_matrix
 	edges = utils.get_edges(orderlines, dists)
@@ -40,18 +40,18 @@ if __name__ == "__main__":
 	with open(f"../Results.csv", "w") as output_file:
 		for file in benchmark.BENCHMARKS:
 			problem = benchmark.read_benchmark(f"../benchmarks/{file}")
-
+			print(problem.name, end="...")
 
 			orderlines, dists, pallet_size, max_weight = problem.orderlines, problem.dists, problem.pallet_size, problem.pallet_max_weight
 			edges = utils.get_edges(orderlines, dists)
 
 			solver = Solver(orderlines, edges, dists, pallet_size, max_weight)
-			sol = solver.heuristic(GREEDY_BETA)
-			cost = solver.getCost(sol, dists)
-			#sol, cost, _ = solver(60)
+			#sol = solver.heuristic(GREEDY_BETA)
+			#cost = solver.getCost(sol, dists)
 
+			sol, cost, _ = solver(60)
 			output_file.write(f"{problem.name}, {problem.customers}, {problem.items}, {problem.vehicles}, {len(sol)}, {cost} \n")
-	"""
+			print("done")
 
 	# Use the following for multiprocessing
 	# ---------------------------------------------------------------------------------------------------

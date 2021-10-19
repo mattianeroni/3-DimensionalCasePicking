@@ -106,7 +106,7 @@ def read_benchmark (file):
                     pos = 4 * case_id
                     code = f"{str(id)}.{str(case_id)}"
                     orderline = OrderLine(code = code, location = id)
-                    case = Case(orderline, code, data[pos + 1], data[pos + 2], data[pos + 0], weight=0, strength=10) #data[pos + 3])
+                    case = Case(orderline, code, data[pos + 1], data[pos + 2], data[pos + 0], weight=0, strength=10)#data[pos + 3])
                     orderline.cases = (case,)
                     orderline.weight = case.weight
                     orderline.volume = case.sizex * case.sizey * case.sizez
