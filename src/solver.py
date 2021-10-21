@@ -206,7 +206,6 @@ class Solver (object):
         dists = self.dists
         orderlines = self.orderlines
         save = self.history.append
-        b, B = betarange
         # Generate a starting solution
         best = heuristic(GREEDY_BETA)
         bestcost = getCost(best, dists)
@@ -216,7 +215,7 @@ class Solver (object):
         while time.time() - start < maxtime:
             iterations += 1
             # Generate a new solution
-            beta = random.uniform(b, B)
+            beta = random.uniform(*betarange)
             newsol = heuristic(beta)
             newcost = getCost(newsol, dists)
 
