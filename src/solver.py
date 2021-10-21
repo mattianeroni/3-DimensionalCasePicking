@@ -186,7 +186,7 @@ class Solver (object):
         return total
 
 
-    def __call__ (self, maxtime):
+    def __call__ (self, maxtime, betarange=(0.1, 0.3)):
         """
          This method executes many times the heuristic method generating many
          different solutions until the available time (i.e., maxtime) is not exceeded.
@@ -206,6 +206,7 @@ class Solver (object):
         dists = self.dists
         orderlines = self.orderlines
         save = self.history.append
+        b, B = betarange
         # Generate a starting solution
         best = heuristic(GREEDY_BETA)
         bestcost = getCost(best, dists)
@@ -215,7 +216,7 @@ class Solver (object):
         while time.time() - start < maxtime:
             iterations += 1
             # Generate a new solution
-            beta = random.uniform(0.1, 0.3)
+            beta = random.uniform(b, B)
             newsol = heuristic(beta)
             newcost = getCost(newsol, dists)
 
