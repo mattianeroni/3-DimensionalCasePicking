@@ -5,6 +5,6 @@ A new algorithm for the 3-Dimensional Case Picking Problem. A newly considered p
 
 The algorithm proposed and implemented is published on an international scientific journal and comes from a collaboration between the Department of Engineering at University of Parma (Parma, ITALY) and the IN3 Computer Science Dept. at Universitat Oberta de Catalunya (Barcelona, SPAIN).
 
-![alt text](https://github.com/mattianeroni/3-DimensionalCasePicking/blob/main/img_packing.png){:height="20%" width="20%"}
+![alt text](https://github.com/mattianeroni/3-DimensionalCasePicking/blob/main/img_packing.png)
 
 ![alt text](https://github.com/mattianeroni/3-DimensionalCasePicking/blob/main/img_cws.png)
