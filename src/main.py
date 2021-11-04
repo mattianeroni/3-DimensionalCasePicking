@@ -1,6 +1,7 @@
 import multiprocessing
 import functools
 import operator
+import pandas as pd
 
 import warehouse
 import utils
@@ -34,21 +35,61 @@ def multiprocessing_test ():
     print(return_dict)
 
 
-def simple_test ():
-    """
-    A simple test with the benchmark created by us.
-    """
-    orderlines = utils.readfile("../test/testproblem.csv")
-    dists = warehouse.distance_matrix
-    edges = utils.get_edges(orderlines, dists)
 
-    solver = Solver(orderlines, edges, dists, (120, 80, 150), 450)
-    sol = solver.heuristic(GREEDY_BETA)
-    cost = solver.getCost(sol, dists)
-    # sol, cost, iterations = solver.__call__(60)
-    # print(len(sol), cost)
-    for i in sol:
-        utils.plot(i)
+def _evaluateCurrentSol (df, dists):
+    df["Volume"] = df["SizeX"] * df["SizeY"] * df["SizeZ"]
+    df["MaxWeight"] = df["Weight"] * df["#Cases"]
+    df["MaxVolume"] = df["Volume"] * df["#Cases"]
+    df_pallets = df.groupby("PalletID").sum()
+    n_pallets = df_pallets.index.__len__()
+    maxweight = df_pallets["MaxWeight"].max()
+    maxvolume = df_pallets["MaxVolume"].max()
+
+    current_loc = 0
+    current_pallet = None
+    distance = 0
+
+    for pallet, loc in zip(df["PalletID"], df["Location"]):
+
+        if current_pallet is not None and pallet != current_pallet:
+            distance += dists[current_loc, 0]
+            current_loc = 0
+
+        distance += dists[current_loc, loc]
+        current_pallet = pallet
+        current_loc = loc
+
+    distance += dists[current_loc, 0]
+
+    return n_pallets, distance, maxweight, maxvolume
+
+
+def real_test ():
+    """
+    Tests made with real data.
+    """
+    dists = warehouse.distance_matrix
+    locations = list(range(dists.shape[0]))
+    with open(f"../Results.csv", "w") as output_file:
+        # C: Current algorithm implemented by the company
+        # P: Proposed algorithm
+        output_file.write("TestID, #Orderlines, #Cases, #Pallets_C, Distance_C, MaxVolume_C, MaxWeight_C, #Pallets_P, Distance_P, MaxVolume_P, MaxWeight_P\n")
+        for i in range(1, 22):
+            print("Test ", i, end="...")
+            try:
+                filename = f"../tests/test{str(i)}.csv"
+                orderlines = utils.readfile(filename, delimiter=',')
+                edges = utils.get_edges(orderlines, dists)
+
+                solver = Solver(orderlines, edges, dists, (140, 110, 150), 1200)
+                sol, cost, iterations = solver.__call__(maxtime=300)
+
+                palletsC, costC, maxweightC, maxvolumeC = _evaluateCurrentSol(pd.read_csv(filename, index_col = "Unnamed: 0"), dists)
+                output_file.write(f"{i}, {len(orderlines)}, {sum(len(orderline.cases) for orderline in orderlines)}, {palletsC}, {costC}, {maxweightC}, {maxvolumeC}, {len(sol)}, {cost}, {max(p.volume for p in sol)}, {max(p.weight for p in sol)}\n")
+                print("done")
+            except:
+                print("ERROR")
+
 
 
 def literature_test ():
@@ -74,5 +115,5 @@ def literature_test ():
 
 
 if __name__ == "__main__":
-    #simple_test()
-    literature_test()
+    real_test()
+    #literature_test()

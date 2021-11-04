@@ -31,7 +31,7 @@ import warnings
 warnings.filterwarnings("ignore")
 
 
-def readfile (filename, delimiter=";"):
+def readfile (filename, delimiter=","):
     """
     Read the .csv file with the problem to solve and translates it
     into orderlines and cases.
@@ -40,9 +40,10 @@ def readfile (filename, delimiter=";"):
     file = pd.read_csv(filename, delimiter=delimiter)
     orderlines = []
     for _, line in file.iterrows():
-        orderline = OrderLine(code=line['Code'], location=line['Location'])
-        cases = tuple(Case(orderline, line['Code'], line['SizeX'], line['SizeY'], line['SizeZ'], line['Weight'], line['Strength'])
-                     for i in range(line["#Cases"]))
+        
+        orderline = OrderLine(code=str(line['Code']), location=int(line["Location"]))
+        cases = tuple(Case(orderline, str(line['Code']), int(line['SizeX']), int(line['SizeY']), int(line['SizeZ']), int(line['Weight']), int(line['Strength']))
+                     for i in range(int(line["#Cases"])))
         orderline.cases = cases
         orderline.weight = sum(c.weight for c in cases)
         orderline.volume = sum(c.sizex * c.sizey * c.sizez for c in cases)

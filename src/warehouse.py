@@ -10,7 +10,7 @@ Author: Mattia Neroni, Ph.D., Eng. (May 2021).
 """
 import networkx as nx
 import networkx.algorithms.shortest_paths.dense as nxalg
-#import matplotlib.pyplot as plt
+import matplotlib.pyplot as plt
 
 # Warehouse characteristics
 LOCATION_X = 2
@@ -53,10 +53,12 @@ for x in range(AISLES):
         node_id += 1
     current_pos[0] += LOCATION_X*2 + AISLE_SIZE
 
-# Plot the graph
-#nx.draw(G, pos=pos, with_labels=True, font_size=8, font_weight="bold")
-#plt.show()
-
 # Set the distance matrix
 distance_matrix = nxalg.floyd_warshall_numpy(G)
 #print(distance_matrix)
+
+
+if __name__ == "__main__":
+    # Plot the graph
+    nx.draw(G, pos=pos, with_labels=True, font_size=8, font_weight="bold")
+    plt.show()
