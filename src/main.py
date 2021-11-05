@@ -85,7 +85,7 @@ def real_test ():
                 sol, cost, iterations = solver.__call__(maxtime=300)
 
                 palletsC, costC, maxweightC, maxvolumeC = _evaluateCurrentSol(pd.read_csv(filename, index_col = "Unnamed: 0"), dists)
-                output_file.write(f"{i}, {len(orderlines)}, {sum(len(orderline.cases) for orderline in orderlines)}, {palletsC}, {costC}, {maxweightC}, {maxvolumeC}, {len(sol)}, {cost}, {max(p.volume for p in sol)}, {max(p.weight for p in sol)}\n")
+                output_file.write(f"{i}, {len(orderlines)}, {sum(len(orderline.cases) for orderline in orderlines)}, {palletsC}, {costC}, {maxvolumeC}, {maxweightC}, {len(sol)}, {cost}, {max(p.volume for p in sol)}, {max(p.weight for p in sol)}\n")
                 print("done")
             except:
                 print("ERROR")
