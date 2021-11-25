@@ -54,6 +54,7 @@ class Pallet (object):
         self.orderlines = set()
         self.weight = 0
         self.volume = 0
+        self.active = True       # Used only by the sequential procedure
 
     def __hash__ (self):
         """
