@@ -21,7 +21,7 @@ def _worker (id, return_dict, orderlines, edges, dists):
 	return_dict[id] = iterations
 	print(f"Worker {id} ended.")
 
-def multiprocessing_test ():
+def multiprocessing_test (orderlines, edges, dists):
     """ Use the following for multiprocessing """
     manager = multiprocessing.Manager()
     return_dict = manager.dict()
@@ -69,26 +69,38 @@ def real_test ():
     Tests made with real data.
     """
     dists = warehouse.distance_matrix
-    locations = list(range(dists.shape[0]))
+    #locations = list(range(dists.shape[0]))
     with open(f"../Results.csv", "w") as output_file:
         # C: Current algorithm implemented by the company
         # P: Proposed algorithm
-        output_file.write("TestID, #Orderlines, #Cases, #Pallets_C, Distance_C, MaxVolume_C, MaxWeight_C, #Pallets_P, Distance_P, MaxVolume_P, MaxWeight_P\n")
+        # S: The sequential solution (i.e., packing first, routing next)
+        output_file.write("TestID, #Orderlines, #Cases, #Pallets_C, Distance_C, MaxVolume_C, MaxWeight_C, #Pallets_P, Distance_P, MaxVolume_P, MaxWeight_P, #Pallets_S, Distance_S, MaxVolume_S, MaxWeight_S\n")
         for i in range(1, 22):
             print("Test ", i, end="...")
-            try:
-                filename = f"../tests/test{str(i)}.csv"
-                orderlines = utils.readfile(filename, delimiter=',')
-                edges = utils.get_edges(orderlines, dists)
+            filename = f"../tests/test{str(i)}.csv"
 
-                solver = Solver(orderlines, edges, dists, (140, 110, 150), 1200)
-                sol, cost, iterations = solver.__call__(maxtime=300)
+            # Extraction of usefull data.
+            orderlines = utils.readfile(filename, delimiter=',')
+            edges = utils.get_edges(orderlines, dists)
 
-                palletsC, costC, maxweightC, maxvolumeC = _evaluateCurrentSol(pd.read_csv(filename, index_col = "Unnamed: 0"), dists)
-                output_file.write(f"{i}, {len(orderlines)}, {sum(len(orderline.cases) for orderline in orderlines)}, {palletsC}, {costC}, {maxvolumeC}, {maxweightC}, {len(sol)}, {cost}, {max(p.volume for p in sol)}, {max(p.weight for p in sol)}\n")
-                print("done")
-            except:
-                print("ERROR")
+            # Get the result of the proposed algorithm.
+            solver = Solver(orderlines, edges, dists, (140, 110, 150), 1200)
+            sol, cost, iterations = solver.__call__(maxtime=300)
+
+            # Get the results of the sequential procedure where
+            # we do the packing first and the routing next.
+            seqsolver = Solver(orderlines, edges, dists, (140, 110, 150), 1200)
+            seqsol = seqsolver.sequential()
+            seqcost = seqsolver.getCost(seqsol, dists)
+
+            # Get the results of the company.
+            palletsC, costC, maxweightC, maxvolumeC = _evaluateCurrentSol(pd.read_csv(filename, index_col = "Unnamed: 0"), dists)
+
+            # Print results
+            output_file.write(f"{i}, {len(orderlines)}, {sum(len(orderline.cases) for orderline in orderlines)}, {palletsC}, {costC}, {maxvolumeC}, {maxweightC}, {len(sol)}, {cost}, {max(p.volume for p in sol)}, {max(p.weight for p in sol)}, {len(seqsol)}, {seqcost}, {max(p.volume for p in seqsol)}, {max(p.weight for p in seqsol)}\n")
+            print("done")
+
+
 
 
 

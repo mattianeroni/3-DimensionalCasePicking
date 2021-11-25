@@ -17,6 +17,7 @@ Author' contact: mattianeroni93@gmail.com
 import collections
 import operator
 import random
+import itertools
 import matplotlib.pyplot as plt
 import time
 from math import log
@@ -226,3 +227,54 @@ class Solver (object):
             save(bestcost)
 
         return best, bestcost, iterations
+
+    def sequential (self):
+        """
+        This method provides a single solution to the problem
+        by using a sequential approach --i.e., first the packing optimisation
+        is carried out, and then the routing improvement is done.
+
+        This is used to compare the proposed procedure in the __call__ method
+        with a different approach where routing and packing are not solved together.
+        """
+        pallet_size, pallet_max_weight = self.pallet_size, self.pallet_max_weight
+        palletsList = []
+        # First build a pallet for each orderline (dummy solution)
+        for orderline in self.orderlines:
+            p = Pallet(pallet_size, pallet_max_weight)
+            done, packedCases, layersMap = dubePacker(p, orderline)
+            assert done == True
+            p.cases, p.layersMap = packedCases, layersMap
+            p.weight = orderline.weight
+            p.volume = orderline.volume
+            orderline.pallet = p
+            p.orderlines.add(orderline)
+            palletsList.append(p)
+
+        # Sort palletsList for decreasing strength
+        palletsList.sort(key=lambda i: i.cases[0].strength, reverse=True)
+
+        # For each couple of different pallets...
+        for iPallet, jPallet in itertools.permutations(palletsList, 2):
+            # If both are active (have not been merged into others).
+            if iPallet.active and jPallet.active:
+                # Control the volumetric lower bound
+                if iPallet.volume + jPallet.volume > iPallet.maxVolume:
+                    continue
+                # Control the weight lower bound
+                if iPallet.weight + jPallet.weight > iPallet.maxWeight:
+                    continue
+                # Try merging
+                done, packedCases, layersMap = dubePacker(iPallet, jPallet)
+                if done:
+                    iPallet.cases = packedCases
+                    iPallet.layersMap = layersMap
+                    iPallet.weight += jPallet.weight
+                    iPallet.volume += jPallet.volume
+                    iPallet.orderlines.update(jPallet.orderlines)
+                    jPallet.active = False
+                    for line in jPallet.orderlines:
+                        line.pallet = iPallet
+        # Remove non-active pallets
+        palletsList = list(filter(operator.attrgetter("active"), palletsList))
+        return palletsList
