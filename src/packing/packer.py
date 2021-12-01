@@ -25,7 +25,7 @@ from .pallet import HashableDict
 # Initialize the parameters of the algorithm
 # The minimum supporting surface to make the packing feasible
 # The minimum number of stable corners to make the packing feasible
-MIN_STABLE_SURFACE = 0.6
+MIN_STABLE_SURFACE = 0.7
 MIN_STABLE_CORNERS = 3
 
 
