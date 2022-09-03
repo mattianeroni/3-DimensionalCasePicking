@@ -46,12 +46,14 @@ class Pallet (object):
                         locations can be visited.
         :attr orderlines: <set<OrderLine>> the set of orderlines kept into this pallet.
         """
+        self.__i = 0             # Counter used to iterate the pallet cases
         self.size = size
         self.maxWeight = max_weight
         self.maxVolume = functools.reduce(operator.mul, size, 1)
         self.cases = collections.deque()
         self.layersMap = HashableDict()
         self.orderlines = set()
+        self.sorted_orderlines = []
         self.weight = 0
         self.volume = 0
         self.active = True       # Used only by the sequential procedure
@@ -61,3 +63,15 @@ class Pallet (object):
         Method implemented to make the pallet hashable for caching.
         """
         return hash(self.layersMap)
+
+
+    def __iter__(self):
+        self.__i = 0
+        return self 
+
+
+    def __next__(self):
+        if self.__i < len(self.cases):
+            self.__i += 1
+            return self.cases[self.__i - 1]
+        raise StopIteration

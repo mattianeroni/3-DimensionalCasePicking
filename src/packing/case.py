@@ -15,6 +15,13 @@ Author' contact: mattianeroni93@gmail.com
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 """
 
+def resetCase(case):
+    currentItem = case.__copy__()
+    currentItem.busyCorners = [False, False, False]
+    currentItem.canHold = currentItem.strength
+    return currentItem
+    
+
 def rotate (case):
     """
     Method used to rotate a case of 90° on the horizontal plan.
@@ -48,6 +55,7 @@ class Case (object):
         self.sizex = sizex
         self.sizey = sizey
         self.sizez = sizez
+        self.volume = sizex * sizey * sizez
         self.weight = weight
         self.strength = strength
         self.canHold = strength
@@ -62,6 +70,9 @@ class Case (object):
         obj.__dict__.update(self.__dict__)
         obj.busyCorners = list(self.busyCorners)
         return obj
+
+    #def __eq__(self, other):
+    #    return self.code == other.code and self.orderline == other.orderline
 
     @property
     def position (self):

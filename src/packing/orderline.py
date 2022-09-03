@@ -15,6 +15,18 @@ Author' contact: mattianeroni93@gmail.com
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 """
 
+def assignPallet(orderline, pallet):
+    """
+    Function that could be used to assign a pallet to
+    a orderline.
+
+    :param orderline: The orderline 
+    :param pallet: The pallet
+    """
+    orderline.pallet = pallet
+    return orderline
+
+
 class OrderLine (object):
     """
     An instance of this class represents a customer orderline.
@@ -24,11 +36,11 @@ class OrderLine (object):
         """
         Constructor.
         :param code: <char> the type of product required
-        :param location: <int> the unique id of the storage location where the required
-                        product is stored.
+        :param location: <int> the unique id of the storage location where the required product is stored.
         :param cases: <list<Case>> the cases required.
 
         """
+        self.__i = 0            # Counter used to iterate the pallet cases
         self.code = code
         self.location = location
         self.cases = cases
@@ -38,6 +50,9 @@ class OrderLine (object):
         self.pallet = None
         self.dn_edge = None
         self.nd_edge = None
+
+    #def __repr__(self):
+    #    return f"OrderLine(code={self.code}, cases={len(self.cases)}, location={self.location})"
 
     def __hash__(self):
         """
@@ -52,3 +67,14 @@ class OrderLine (object):
         for caching using orderlines as keys.
         """
         return self.code < other.code
+
+    def __iter__(self):
+        self.__i = 0
+        return self 
+
+
+    def __next__(self):
+        if self.__i < len(self.cases):
+            self.__i += 1
+            return self.cases[self.__i - 1]
+        raise StopIteration

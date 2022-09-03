@@ -2,37 +2,27 @@ import multiprocessing
 import functools
 import operator
 import pandas as pd
+import time 
 
 import warehouse
 import utils
 import benchmark
 
 from solver import Solver, GREEDY_BETA
-from packing import PALLET_SIZE, PALLET_MAX_WEIGHT
+from packing.pallet import PALLET_SIZE, PALLET_MAX_WEIGHT
 
 
-def _worker (id, return_dict, orderlines, edges, dists):
-	"""
-	 Method to use in case of multiprocessing
-	"""
-	print(f"Worker {id} is digging.")
-	solver = Solver(orderlines, edges, dists)
-	sol, cost, iterations = solver.__call__(maxtime=180)
-	return_dict[id] = iterations
-	print(f"Worker {id} ended.")
-
-def multiprocessing_test (orderlines, edges, dists):
-    """ Use the following for multiprocessing """
-    manager = multiprocessing.Manager()
-    return_dict = manager.dict()
-    jobs = []
-    for i in range(4):
-        proc = multiprocessing.Process(target=_worker, args=(i, return_dict, orderlines, edges, dists))
-        jobs.append(proc)
-        proc.start()
-    for proc in jobs:
-        proc.join()
-    print(return_dict)
+def _worker (id, return_dict, problem, maxtime=3600, betas=(0.3,0.6), opt=True):
+    print(f"Worker {id} is digging.")
+    orderlines, dists, pallet_size, max_weight = problem.orderlines, problem.dists, problem.pallet_size, problem.pallet_max_weight
+    edges = utils.get_edges(orderlines, dists)
+    solver = Solver(orderlines, edges, dists, pallet_size, max_weight)
+    sol, cost, iterations = solver.multi_start(maxtime, betas)
+    if opt:
+        paths_dict = solver.opt2_paths(sol, dists)
+        cost = solver.getCost(paths_dict, dists)
+    return_dict[id] = (sol, cost, iterations)
+    print(f"Worker {id} ended.")
 
 
 
@@ -70,7 +60,7 @@ def real_test ():
     """
     dists = warehouse.distance_matrix
     #locations = list(range(dists.shape[0]))
-    with open(f"../Results.csv", "w") as output_file:
+    with open(f"../RealCaseResults.csv", "w") as output_file:
         # C: Current algorithm implemented by the company
         # P: Proposed algorithm
         # S: The sequential solution (i.e., packing first, routing next)
@@ -85,7 +75,7 @@ def real_test ():
 
             # Get the result of the proposed algorithm.
             solver = Solver(orderlines, edges, dists, (140, 110, 150), 1200)
-            sol, cost, iterations = solver.__call__(maxtime=300)
+            sol, cost, iterations = solver.multi_start(maxtime=300)
 
             # Get the results of the sequential procedure where
             # we do the packing first and the routing next.
@@ -108,24 +98,72 @@ def literature_test ():
     """
     The tests made on literature benchmarks.
     """
-    with open(f"../Results.csv", "w") as output_file:
-        for file in benchmark.BENCHMARKS:
+    with open(f"../SingleThreadLiteratureResults.csv", "w") as output_file:
+        for file in benchmark.BENCHMARKS[:1]:
             problem = benchmark.read_benchmark(f"../benchmarks/{file}")
-            print(problem.name, end="...")
-
+            #print(problem.name, end="...")
+            
             orderlines, dists, pallet_size, max_weight = problem.orderlines, problem.dists, problem.pallet_size, problem.pallet_max_weight
             edges = utils.get_edges(orderlines, dists)
 
             solver = Solver(orderlines, edges, dists, pallet_size, max_weight)
-            # sol = solver.heuristic(GREEDY_BETA)
-            # cost = solver.getCost(sol, dists)
 
-            sol, cost, _ = solver.__call__(60, (0.3, 0.6))
+            sol, cost, iterations = solver.multi_start(60, (0.3, 0.6))
+
+            #_start = time.time() 
+            paths_dict = solver.opt2_paths(sol, dists)
+            cost = solver.getCost(paths_dict, dists)
+            #duration = time.time() - _start
+
+            print(len(sol), cost)
+            
+            
             output_file.write(
                 f"{problem.name}, {problem.customers}, {problem.items}, {problem.vehicles}, {len(sol)}, {cost} \n")
-            print("done")
+            #print("done")
+
+
+
+def literature_multiprocess_test ():
+    """
+    The tests made on literature benchmarks.
+    """
+    # Clear the file 
+    #file = open(f"../LiteratureResults.csv", "w")
+    #file.close()
+
+    manager = multiprocessing.Manager()
+    return_dict = manager.dict()
+    jobs = []
+
+    for filename in benchmark.BENCHMARKS:
+        
+
+        problem = benchmark.read_benchmark(f"../benchmarks/{filename}")
+
+        maxtime = 3600
+        betas = (0.3, 0.6)
+
+        proc = multiprocessing.Process(
+            target=_worker, 
+            args=(filename, return_dict, problem, maxtime, betas)
+        )
+        jobs.append(proc)
+        proc.start()
+
+
+    for proc in jobs:
+        proc.join()
+    
+    with open(f"../LiteratureResults.csv", "w") as output_file:
+        
+        for name, res in sorted(return_dict.items(), key=operator.itemgetter(0)):
+            sol, cost, iterations = res
+            output_file.write(f"{name}, {len(sol)}, {cost} \n")
+
 
 
 if __name__ == "__main__":
-    real_test()
+    #real_test()
     #literature_test()
+    literature_multiprocess_test()

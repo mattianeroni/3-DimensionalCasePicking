@@ -32,7 +32,6 @@ class Edge (object):
         :param cost: <int> the length of the edge (i.e., distance between locations)
         :param saving: <int> the saving defined by Clarke-Wright
         :param inverse: <Edge> the inverse Edge connecting the destination to the origin.
-
         """
         self.origin = origin
         self.end = end

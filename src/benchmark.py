@@ -21,7 +21,8 @@ import numpy as np
 from math import pow, sqrt
 from typing import Any
 
-from packing import OrderLine, Case
+from packing.orderline import OrderLine
+from packing.case import Case
 
 
 # Benchmark instances proposed in literature that will be used to test the

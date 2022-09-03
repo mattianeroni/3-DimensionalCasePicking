@@ -248,7 +248,7 @@ def fit (currentItem, pallet, packed, layersMap):
 
 
 
-@functools.lru_cache(maxsize=32)
+@functools.lru_cache(maxsize=1024)
 def dubePacker (pallet, hosted):
     """
      The algorithm implemented in this method is a modified version of the one proposed by:
@@ -264,7 +264,7 @@ def dubePacker (pallet, hosted):
 
 
      :param pallet: <Pallet> The pallet in which cases must be placed.
-     :param hosted: <list<Case>> The set of cases to place.
+     :param hosted: <Pallet | OrderLine> The pallet or orderline containing the cases to place .
 
      :return: <tuple> The first element is True if the packing has been successful
                 and False otherwise, the second returns the set of packed items with
@@ -282,7 +282,7 @@ def dubePacker (pallet, hosted):
     layersMap = HashableDict(pallet.layersMap)
 
     # Sort cases for decreasing strength
-    sortedCases = sorted(hosted.cases, key=operator.attrgetter('strength'), reverse=True)
+    sortedCases = sorted(hosted, key=operator.attrgetter('strength'), reverse=True)
 
     # For each item to pack
     for currentItem in sortedCases:
