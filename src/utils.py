@@ -87,10 +87,6 @@ def get_edges (orderlines, dists):
 
 
 def _cuboid_data2(o, size=(1,1,1)):
-    """
-    Taken from stackoverflow and never explored.
-
-    """
     X = [[[0, 1, 0], [0, 0, 0], [1, 0, 0], [1, 1, 0]],
          [[0, 0, 0], [0, 0, 1], [1, 0, 1], [1, 0, 0]],
          [[1, 0, 1], [1, 0, 0], [1, 1, 0], [1, 1, 1]],
@@ -104,10 +100,6 @@ def _cuboid_data2(o, size=(1,1,1)):
     return X
 
 def _plotCubeAt2(positions,sizes=None,colors=None, **kwargs):
-    """
-    Taken from stackoverflow and never explored.
-
-    """
     if not isinstance(colors,(list,np.ndarray)):
         colors=["C0"]*len(positions)
     if not isinstance(sizes,(list,np.ndarray)):
